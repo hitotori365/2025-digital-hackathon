@@ -1,0 +1,20 @@
+{
+  "name": "My Chrome Extension",
+  "version": "1.0",
+  "manifest_version": 3,
+  "description": "Vite と TypeScript で作る Chrome 拡張のサンプル",
+  "permissions": ["storage", "contextMenus", "scripting"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["contentScript.js"],
+      "run_at": "document_idle",
+      "type": "module"
+    }
+  ]
+}

@@ -24,7 +24,12 @@ async function querySelectorAllWithDelay(selector, delay = 1000, maxTimeout = 10
   }
 }
 
-function isParagraph(text) {
+/**
+ * HACK: テキストに全角数字が含まれているかどうかで、段落タイトルであるかどうかを判定している
+ * @param {string} text
+ * @returns {boolean} 判定結果
+ */
+function isParagraphTitle(text) {
   const fullWidthDigitPattern = /[\uFF10-\uFF19]+/
   return fullWidthDigitPattern.test(text)
 }
@@ -33,7 +38,7 @@ const highlightArticleAndParagraph = async () => {
   try {
     const elements = await querySelectorAllWithDelay('span.paragraphtitle')
     elements.forEach((element) => {
-      element.style.color = isParagraph(element.textContent) ? 'orange' : 'red'
+      element.style.color = isParagraphTitle(element.textContent) ? 'orange' : 'red'
     })
   } catch (error) {
     console.error('要素取得に失敗:', error)

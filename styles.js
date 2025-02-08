@@ -4,24 +4,25 @@
  * @param {number} delay - ポーリング間隔 (ms)
  * @param {number} maxTimeout - 最大待機時間 (ms)
  */
-const querySelectorAllWithDelay = (selector, delay = 1000, maxTimeout = 10000) =>
-  new Promise((resolve, reject) => {
-    const start = Date.now()
-    const poll = () => {
-      // 最大待機時間を超えている場合は reject する
-      if (Date.now() - start > maxTimeout) {
-        reject(new Error(`Timeout: セレクタ "${selector}" の要素が ${maxTimeout}ms 内に見つかりませんでした。`))
-        return
-      }
-      const elements = document.querySelectorAll(selector)
-      if (elements.length > 0) {
-        resolve(elements)
-      } else {
-        setTimeout(poll, delay)
-      }
+async function querySelectorAllWithDelay(selector, delay = 1000, maxTimeout = 10000) {
+  const startTime = Date.now()
+
+  while (true) {
+    const elements = document.querySelectorAll(selector)
+
+    if (elements.length > 0) {
+      return elements
     }
-    poll()
-  })
+
+    // 最大待機時間を超えている場合は reject する
+    const elapsed = Date.now() - startTime
+    if (elapsed > maxTimeout) {
+      throw new Error(`Timeout: セレクタ "${selector}" の要素が ${maxTimeout}ms 内に見つかりませんでした。`)
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, delay))
+  }
+}
 
 function isParagraph(text) {
   const fullWidthDigitPattern = /[\uFF10-\uFF19]+/

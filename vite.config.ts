@@ -9,11 +9,10 @@ export default defineConfig({
         contentScript: resolve(__dirname, "src/contentScript.ts"),
       },
       output: {
-        // 出力ファイル名をエントリーポイント名に合わせる
         entryFileNames: "[name].js",
       },
     },
-    outDir: "dist", // 出力先（public の内容はそのままコピーされます）
+    outDir: "dist",
     emptyOutDir: true,
   },
 });

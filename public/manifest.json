@@ -1,8 +1,8 @@
 {
-  "name": "My Chrome Extension",
+  "name": "こたつみかん",
   "version": "1.0",
   "manifest_version": 3,
-  "description": "Vite と TypeScript で作る Chrome 拡張のサンプル",
+  "description": "こたつみかんの拡張機能",
   "permissions": ["storage", "contextMenus", "scripting"],
   "host_permissions": ["<all_urls>"],
   "background": {

@@ -9,8 +9,8 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "dist",
-    "types": ["chrome"]
+    "types": ["chrome", "jest", "node"]
   },
-  "include": ["src"],
+  "include": ["src", "vite-env.d.ts", "test/highlight.test.ts"],
   "exclude": ["node_modules", "dist"]
 }

@@ -11,7 +11,7 @@
   },
   "content_scripts": [
     {
-      "js": ["styles.js"],
+      "js": ["styles.js", "dist/contentScript.js", "dist/colorbrackets.js"],
       "css": ["styles.css"],
       "matches": ["https://laws.e-gov.go.jp/*"]
     }

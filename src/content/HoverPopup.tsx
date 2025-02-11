@@ -113,11 +113,14 @@ const HoverPopup: React.FC = () => {
 
       // ポップアップの位置を設定
       const rect = target.getBoundingClientRect();
-      const baseLeft = parentPopupId 
+      const baseLeft = parentPopupId
         ? rect.right + window.scrollX + 10
         : rect.left + window.scrollX;
       const popupLeft = baseLeft;
-      const popupTop = rect.top + window.scrollY;
+      const popupTop = parentPopupId
+        ? rect.top + window.scrollY         // 親ポップアップがある場合は同じ高さ
+        : rect.bottom + window.scrollY + 16; // 通常のリンクの場合は16px下に表示
+
 
       // 画面端での位置調整
       if (popupLeft + 256 > window.innerWidth) {
@@ -135,18 +138,18 @@ const HoverPopup: React.FC = () => {
           clearHideTimeout(parentPopupId);
         }
       });
-    
+
       popup.addEventListener('mouseleave', (e: MouseEvent) => {
         const relatedTarget = e.relatedTarget as HTMLElement;
-        
+
         // 子ポップアップに移動した場合は消さない
         const isMovingToChild = Array.from(document.querySelectorAll('.hover-popup')).some(p => {
           const pElement = p as HTMLElement;
-          return pElement.dataset.popupId !== popupId && 
-                 pElement.dataset.popupId !== parentPopupId && 
-                 pElement.contains(relatedTarget);
+          return pElement.dataset.popupId !== popupId &&
+            pElement.dataset.popupId !== parentPopupId &&
+            pElement.contains(relatedTarget);
         });
-    
+
         if (!isMovingToChild) {
           scheduleHidePopup(popupId);
           if (parentPopupId) {
@@ -154,7 +157,7 @@ const HoverPopup: React.FC = () => {
           }
         }
       });
-    
+
       document.body.appendChild(popup);
       return popupId;
     };
@@ -163,16 +166,16 @@ const HoverPopup: React.FC = () => {
       link.addEventListener('mouseenter', () => {
         console.log("リンクへのホバーを検出:", link.href);
         const newPopupId = createPopup(link, parentPopupId);
-        
+
         // 新しいポップアップが作成された場合、親のタイマーをクリア
         if (newPopupId && parentPopupId) {
           clearHideTimeout(parentPopupId);
         }
       });
-    
+
       link.addEventListener('mouseleave', (e: MouseEvent) => {
         const relatedTarget = e.relatedTarget as HTMLElement;
-        
+
         // 親ポップアップのIDがある場合（ポップアップ内のリンク）
         if (parentPopupId) {
           const parentPopup = document.querySelector(`[data-popup-id="${parentPopupId}"]`);
@@ -182,7 +185,7 @@ const HoverPopup: React.FC = () => {
           }
           scheduleHidePopup(parentPopupId);
         }
-    
+
         // 通常のリンクの場合
         const popup = document.querySelector('.hover-popup');
         if (popup && !popup.contains(relatedTarget)) {
@@ -193,12 +196,12 @@ const HoverPopup: React.FC = () => {
         }
       });
     };
-    
+
 
     async function setupHoverEvents() {
       try {
         console.log("ホバーイベントのセットアップを開始");
-        
+
         const sentences = await querySelectorAllWithDelay("p.sentence");
         console.log("p.sentence要素数:", sentences.length);
 

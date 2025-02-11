@@ -46,4 +46,3 @@ const highlightArticleAndParagraph = async () => {
 }
 
 highlightArticleAndParagraph()
-// TODO: カッコを見やすくハイライトなどする

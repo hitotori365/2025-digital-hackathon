@@ -6,7 +6,7 @@
   "content_scripts": [
     {
       "matches": ["*://*/*"],
-      "js": ["./src/content/main.tsx"]
+      "js": ["./src/content/index.tsx"]
     }
   ],
   "icons": {

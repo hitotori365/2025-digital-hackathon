@@ -27,6 +27,25 @@ async function querySelectorAllWithDelay(
 
 const HoverPopup: React.FC = () => {
   useEffect(() => {
+    let hideTimeout: NodeJS.Timeout | null = null;
+
+    const clearHideTimeout = () => {
+      if (hideTimeout) {
+        clearTimeout(hideTimeout);
+        hideTimeout = null;
+      }
+    };
+
+    const scheduleHidePopup = () => {
+      clearHideTimeout();
+      hideTimeout = setTimeout(() => {
+        const popup = document.querySelector('.hover-popup');
+        if (popup && !popup.matches(':hover')) {
+          popup.remove();
+        }
+      }, 2000);
+    };
+
     async function setupHoverEvents() {
       try {
         console.log("ホバーイベントのセットアップを開始");
@@ -43,6 +62,8 @@ const HoverPopup: React.FC = () => {
               const target = e.target as HTMLAnchorElement;
               console.log("リンクへのホバーを検出:", target.href);
               
+              clearHideTimeout(); // タイムアウトをクリア
+
               // 既存のポップアップを削除
               const existingPopup = document.querySelector('.hover-popup');
               if (existingPopup) {
@@ -92,30 +113,22 @@ const HoverPopup: React.FC = () => {
                 popup.style.top = `${popupTop}px`;
               }
 
+              // ポップアップのホバーイベント
+              popup.addEventListener('mouseenter', () => {
+                clearHideTimeout();
+              });
+
+              popup.addEventListener('mouseleave', () => {
+                scheduleHidePopup();
+              });
+
               document.body.appendChild(popup);
             });
 
-            link.addEventListener('mouseleave', (e: Event) => {
-              const toElement = (e as MouseEvent).relatedTarget as HTMLElement;
-              if (!toElement?.closest('.hover-popup')) {
-                const popup = document.querySelector('.hover-popup');
-                if (popup) {
-                  popup.remove();
-                }
-              }
+            link.addEventListener('mouseleave', () => {
+              scheduleHidePopup();
             });
           });
-        });
-
-        // ポップアップ外へのマウス移動を検出
-        document.addEventListener('mouseover', (e: MouseEvent) => {
-          const target = e.target as HTMLElement;
-          if (!target.closest('.hover-popup') && !target.closest('a')) {
-            const popup = document.querySelector('.hover-popup');
-            if (popup) {
-              popup.remove();
-            }
-          }
         });
 
       } catch (error) {
@@ -125,7 +138,9 @@ const HoverPopup: React.FC = () => {
 
     setupHoverEvents();
 
+    // クリーンアップ
     return () => {
+      clearHideTimeout();
       const sentences = document.querySelectorAll("p.sentence");
       sentences.forEach((sentence) => {
         const links = sentence.querySelectorAll('a');
@@ -134,6 +149,10 @@ const HoverPopup: React.FC = () => {
           link.removeEventListener('mouseleave', () => {});
         });
       });
+      const popup = document.querySelector('.hover-popup');
+      if (popup) {
+        popup.remove();
+      }
     };
   }, []);
 

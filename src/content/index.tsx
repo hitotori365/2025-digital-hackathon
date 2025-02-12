@@ -3,7 +3,7 @@ import ReactDOM from "react-dom/client";
 
 import HighlightBrackets from "./HighlightBrackets";
 import HighlightParagraph from "./HightlightParagraph";
-import HoverPopup from "./HoverPopup";
+import HoverTooltip from "./HoverTooltip";
 
 function initialize() {
   const rootDiv = document.createElement("div");
@@ -15,7 +15,7 @@ function initialize() {
     <>
       <HighlightBrackets />
       <HighlightParagraph />
-      <HoverPopup />
+      <HoverTooltip />
     </>
   );
 }

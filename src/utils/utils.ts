@@ -95,3 +95,55 @@ function parseLawNode(node: any, depth: number = 0): string {
 export function parseLawFullText(lawFullText: any): string {
   return parseLawNode(lawFullText);
 }
+
+/**
+ * フラグメント文字列(#以降) → 法令APIの elm (例: MainProvision-Article_36) へ変換
+ * 例:
+ *   "#Mp-Pa_1-Ch_3-Se_1-At_36-Pr_1"
+ *   => "MainProvision-Part_1-Chapter_3-Section_1-Article_36-Paragraph_1"
+ */
+export function fragmentToElm(fragment: string): string | null {
+  // 先頭に # があれば除去
+  const frag = fragment.replace(/^#/, "");
+
+  const mapping: Record<string, string> = {
+    Mp: "MainProvision",
+    Sp: "SupplProvision",
+    Pa: "Part",
+    Ch: "Chapter",
+    Se: "Section",
+    Su: "Subsection",
+    Di: "Division",
+    At: "Article",
+    Pr: "Paragraph",
+  };
+
+  const parts = frag.split("-");
+  if (!parts.length) return null;
+
+  // MainProvision or SupplProvision の処理
+  const root = parts[0];
+  let resultArray: string[] = [];
+  if (root === "Mp") {
+    resultArray.push("MainProvision");
+  } else if (root === "Sp") {
+    resultArray.push("SupplProvision");
+  } else {
+    console.warn("Unknown fragment root:", root);
+    return null;
+  }
+
+  for (let i = 1; i < parts.length; i++) {
+    // segment例: "Pa_1"
+    const seg = parts[i];
+    const [code, num] = seg.split("_");
+    const mapped = mapping[code];
+    if (!mapped) {
+      console.warn("Unknown segment code:", code);
+      return null;
+    }
+    resultArray.push(`${mapped}_${num}`);
+  }
+
+  return resultArray.join("-");
+}

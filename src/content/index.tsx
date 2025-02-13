@@ -1,9 +1,10 @@
-// src/content/index.tsx
 import ReactDOM from "react-dom/client";
 
 import HighlightBrackets from "./HighlightBrackets";
 import HighlightParagraph from "./HightlightParagraph";
 import HoverTooltip from "./HoverTooltip";
+// import HoverPopup from "./HoverPopup";
+import LawPopover from "./LawPopover";
 
 function initialize() {
   const rootDiv = document.createElement("div");
@@ -13,9 +14,11 @@ function initialize() {
   const root = ReactDOM.createRoot(rootDiv);
   root.render(
     <>
+      <LawPopover />
       <HighlightBrackets />
       <HighlightParagraph />
       <HoverTooltip />
+      {/* <HoverPopup /> */}
     </>
   );
 }

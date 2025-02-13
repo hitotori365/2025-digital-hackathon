@@ -1,43 +1,9 @@
-import React, { useEffect } from "react";
-import { parseLawFullText, fragmentToElm } from "../utils/utils";
-import styles from "./LawPopover.module.css";
+import { useEffect } from "react";
 
-/**
- * 法令API から指定の法令IDの法令本文を取得する関数
- */
-async function fetchLawArticle(
-  lawIdOrNumOrRevisionId: string,
-  elm?: string
-): Promise<any> {
-  // base endpoint: GET /api/2/law_data/{law_id_or_num_or_revision_id}
-  const endpoint = `https://laws.e-gov.go.jp/api/2/law_data/${encodeURIComponent(
-    lawIdOrNumOrRevisionId
-  )}`;
+import { fetcher as fetchLawData } from "./fetcher";
+import { parseLawFullText, fragmentToElm } from "./parser";
 
-  // クエリパラメータ指定
-  const url = new URL(endpoint);
-  // レスポンス: JSON
-  url.searchParams.set("response_format", "json");
-  // law_full_text: JSON形式
-  url.searchParams.set("law_full_text_format", "json");
-  if (elm) {
-    url.searchParams.set("elm", elm);
-  }
-
-  try {
-    const response = await fetch(url.toString());
-    console.log("APIリクエスト:", url.toString());
-    if (!response.ok) {
-      throw new Error("法令データの取得に失敗しました");
-    }
-    const json = await response.json();
-    console.log("APIレスポンス:", json);
-    return json;
-  } catch (error) {
-    console.error("法令APIの取得エラー:", error);
-    throw error;
-  }
-}
+import styles from "./ExternalLinkPopover.module.css";
 
 /** 既存のポップオーバー要素をすべて削除する */
 function removeExistingPopovers() {
@@ -121,7 +87,7 @@ function setupLawLinkEvents(link: HTMLAnchorElement) {
     }
 
     try {
-      const res = await fetchLawArticle(
+      const res = await fetchLawData(
         lawIdOrNumOrRevisionId,
         elmParam || undefined
       );
@@ -175,7 +141,7 @@ function setupLawPopoverObserver() {
  * React コンポーネント: LawPopover
  * - 対象ページ内の法令リンクを監視し、info アイコンを追加します
  */
-const LawPopover: React.FC = () => {
+const ExternalLinkPopover = () => {
   useEffect(() => {
     setupLawPopoverObserver();
     return () => {
@@ -186,4 +152,4 @@ const LawPopover: React.FC = () => {
   return null;
 };
 
-export default LawPopover;
+export default ExternalLinkPopover;

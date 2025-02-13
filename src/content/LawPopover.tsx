@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { parseLawFullText, fragmentToElm } from "../utils/utils";
+import styles from "./LawPopover.module.css";
 
 /**
  * 法令API から指定の法令IDの法令本文を取得する関数
@@ -25,6 +26,7 @@ async function fetchLawArticle(
 
   try {
     const response = await fetch(url.toString());
+    console.log("APIリクエスト:", url.toString());
     if (!response.ok) {
       throw new Error("法令データの取得に失敗しました");
     }
@@ -39,7 +41,7 @@ async function fetchLawArticle(
 
 /** 既存のポップオーバー要素をすべて削除する */
 function removeExistingPopovers() {
-  document.querySelectorAll(".law-popup").forEach((p) => p.remove());
+  document.querySelectorAll(`.${styles.lawPopup}`).forEach((p) => p.remove());
 }
 
 /**
@@ -77,29 +79,15 @@ function setupLawLinkEvents(link: HTMLAnchorElement) {
   // info アイコン要素を作成
   const infoIcon = document.createElement("span");
   infoIcon.textContent = "ⓘ";
-  infoIcon.style.cursor = "pointer";
-  infoIcon.style.marginLeft = "4px";
-  infoIcon.style.color = "#007bff";
-  infoIcon.style.fontSize = "0.9em";
-  infoIcon.className = "law-info-icon";
+  infoIcon.className = styles.lawInfoIcon;
 
   // ポップオーバー要素を作成（初期状態は非表示）
   const popover = document.createElement("div");
-  popover.className = "law-popup";
-  popover.style.display = "none";
-  popover.style.width = "300px";
-  popover.style.minHeight = "100px";
-  popover.style.background = "white";
-  popover.style.border = "1px solid #ccc";
-  popover.style.borderRadius = "4px";
-  popover.style.padding = "10px";
-  popover.style.boxShadow = "0 2px 10px rgba(0, 0, 0, 0.1)";
-  popover.style.zIndex = "99999";
   popover.textContent = "読込中...";
+  popover.className = styles.lawPopup;
 
   // アイコンをクリックしたときの動作
   infoIcon.addEventListener("click", async (event) => {
-    event.stopPropagation(); // イベントバブリングを止める（必要に応じて）
     // 既存のポップオーバーを全て消す
     removeExistingPopovers();
 
@@ -176,7 +164,7 @@ function setupLawPopoverObserver() {
   });
 
   // ページロード後に既に存在しているリンクに対しても設定
-  const existingLinks = document.querySelectorAll("a[href^='/law/'],]");
+  const existingLinks = document.querySelectorAll("a[href^='/law/']");
   console.log("初期リンク数:", existingLinks.length);
   existingLinks.forEach((link) =>
     setupLawLinkEvents(link as HTMLAnchorElement)

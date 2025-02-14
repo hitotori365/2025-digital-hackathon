@@ -1,16 +1,15 @@
 /**
- * law_full_text（JSON形式）をテキスト化するための再帰関数
+ * law_full_text（JSON形式） をテキスト化するための再帰関数
  */
 export function parseLawNode(node: any, depth: number = 0): string {
-  // 1. もし node が文字列なら、そのまま返す
+  // node が文字列なら、そのまま返す
   if (typeof node === "string") {
     return node;
   }
 
-  // 2. node がオブジェクトの場合、tag や attr, children を取得
+  // node がオブジェクトの場合、tag や attr, children を取得
   const { tag, attr, children = [] } = node;
 
-  // タグに応じて見出しなどを軽く整形してみる (必要に応じて拡張)
   let prefix = "";
   let suffix = "";
 
@@ -21,40 +20,33 @@ export function parseLawNode(node: any, depth: number = 0): string {
     case "SectionTitle":
     case "SubsectionTitle":
     case "ArticleTitle":
-      // 見出し系は前後に改行を挟む
       prefix = "\n\n";
       suffix = "\n";
       break;
     case "Article":
-      // Article は記事番号を表示させたりもできる (attr.Num)
-      // ここでは単純に前後に改行だけ
       prefix = "\n";
       suffix = "\n";
       break;
     case "Paragraph":
-      // 段落ごとに改行
       prefix = "\n";
       suffix = "\n";
       break;
     case "Item":
-      // 号などを表示
       prefix = "\n  ・";
       break;
     case "Sentence":
-      // 文章の続きなのであまり区切らないが、
-      // 例として改行入れたい場合は suffix = "\n"; にしても良い
       break;
     default:
       break;
   }
 
-  // 3. children を再帰的にパースし、連結
+  // children を再帰的にパースし、連結
   let content = children
     .map((child: any) => parseLawNode(child, depth + 1))
     .join("");
 
-  // 4. 必要に応じて、タグが "ArticleTitle" のときに記事番号を付けるなど拡張可能
-  //   例: if (tag === "ArticleTitle") { content = `【${content}】`; }
+  // 必要に応じて、タグが "ArticleTitle" のときに記事番号を付けるなど拡張可能
+  //  例: if (tag === "ArticleTitle") { content = `【${content}】`; }
 
   return prefix + content + suffix;
 }
@@ -104,7 +96,6 @@ export function fragmentToElm(fragment: string): string | null {
   }
 
   for (let i = 1; i < parts.length; i++) {
-    // segment例: "Pa_1"
     const seg = parts[i];
     const [code, num] = seg.split("_");
     const mapped = mapping[code];

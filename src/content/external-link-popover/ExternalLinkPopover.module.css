@@ -13,8 +13,8 @@
 }
 
 .lawInfoIcon {
-  cursor: pointer;
-  padding-inline: 4px;
-  color: #007bff;
-  font-size: 1.5rem;
+  cursor: pointer !important;
+  padding-inline: 4px !important;
+  color: #007bff !important;
+  font-size: 1.5rem !important;
 }

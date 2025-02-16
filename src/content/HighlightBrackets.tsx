@@ -18,7 +18,6 @@ async function highlightBrackets() {
           /([（）])/g,
           '<span style="background-color: yellow">$1</span>'
         );
-        console.log("括弧を含むテキスト処理:", text);
       }
     });
   } catch (error) {

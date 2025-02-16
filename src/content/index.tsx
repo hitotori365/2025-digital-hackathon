@@ -1,9 +1,9 @@
-// src/content/index.tsx
 import ReactDOM from "react-dom/client";
 
 import HighlightBrackets from "./HighlightBrackets";
 import HighlightParagraph from "./HightlightParagraph";
 import HoverTooltip from "./HoverTooltip";
+import ExternalLinkPopover from "./ExternalLinkPopover/ExternalLinkPopover";
 
 function initialize() {
   const rootDiv = document.createElement("div");
@@ -13,6 +13,7 @@ function initialize() {
   const root = ReactDOM.createRoot(rootDiv);
   root.render(
     <>
+      <ExternalLinkPopover />
       <HighlightBrackets />
       <HighlightParagraph />
       <HoverTooltip />

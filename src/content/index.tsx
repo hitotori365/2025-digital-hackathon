@@ -3,7 +3,7 @@ import ReactDOM from "react-dom/client";
 import HighlightBrackets from "./HighlightBrackets";
 import HighlightParagraph from "./HightlightParagraph";
 import HoverTooltip from "./HoverTooltip";
-import ExternalLinkPopover from "./external-link-popover/ExternalLinkPopover";
+import ExternalLinkPopover from "./ExternalLinkPopover/ExternalLinkPopover";
 
 function initialize() {
   const rootDiv = document.createElement("div");

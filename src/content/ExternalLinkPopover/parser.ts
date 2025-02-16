@@ -1,16 +1,15 @@
 /**
- * law_full_text（JSON形式） をテキスト化するための再帰関数
+ * law_full_text（JSON形式）のノードを DOM 要素に変換する再帰関数
  */
-export function parseLawNode(node: any, depth: number = 0): string {
+export function renderLawNode(node: any): Node {
   if (typeof node === "string") {
-    return node;
+    return document.createTextNode(node);
   }
 
-  const { tag, attr, children = [] } = node;
+  const { tag, children = [] } = node;
+  let el: HTMLElement;
 
-  let prefix = "";
-  let suffix = "";
-
+  // タグごとに要素とクラスを割り当てる
   switch (tag) {
     case "LawTitle":
     case "PartTitle":
@@ -18,40 +17,44 @@ export function parseLawNode(node: any, depth: number = 0): string {
     case "SectionTitle":
     case "SubsectionTitle":
     case "ArticleTitle":
-      prefix = "\n\n";
-      suffix = "\n";
+      el = document.createElement("div");
+      el.className = "title";
       break;
     case "Article":
-      prefix = "\n";
-      suffix = "\n";
+      el = document.createElement("div");
+      el.className = "article";
       break;
     case "Paragraph":
-      prefix = "\n";
-      suffix = "\n";
+      el = document.createElement("p");
+      el.className = "paragraph";
       break;
     case "Item":
-      prefix = "\n  ・";
+      el = document.createElement("div");
+      el.className = "item";
       break;
     case "Sentence":
+      el = document.createElement("span");
+      el.className = "sentence";
       break;
     default:
+      el = document.createElement("div");
       break;
   }
 
-  // children を再帰的にパースし、連結
-  let content = children
-    .map((child: any) => parseLawNode(child, depth + 1))
-    .join("");
+  // 子要素を再帰的に生成して追加
+  children.forEach((child: any) => {
+    el.appendChild(renderLawNode(child));
+  });
 
-  // 必要に応じて、タグが "ArticleTitle" のときに記事番号を付けるなど拡張可能
-  //  例: if (tag === "ArticleTitle") { content = `【${content}】`; }
-
-  return prefix + content + suffix;
+  return el;
 }
 
 /**
- * law_full_text のオブジェクト（JSON）をまとめてテキスト化
+ * law_full_text の JSON オブジェクトを読みやすい形式（DOM要素）に変換する
  */
-export function parseLawFullText(lawFullText: any): string {
-  return parseLawNode(lawFullText);
+export function renderLawFullText(lawFullText: any): HTMLElement {
+  // ルート要素として DocumentFragment を利用してからラッパーにする方法も可能
+  const container = document.createElement("div");
+  container.appendChild(renderLawNode(lawFullText));
+  return container;
 }

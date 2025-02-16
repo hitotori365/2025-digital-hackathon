@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 
 import { fetchLawData } from "./fetcher";
-import { parseLawFullText } from "./parser";
+import { renderLawFullText } from "./parser";
 import { convertFragmentToElm } from "./converter";
 
 import styles from "./ExternalLinkPopover.module.css";
@@ -93,7 +93,6 @@ class Popover {
       return;
     }
 
-    // href から lawIdOrNumOrRevisionId と hash 部分を抽出
     const href = this.link.getAttribute("href");
     if (!href) return;
     const url = new URL(href, window.location.origin);
@@ -112,9 +111,12 @@ class Popover {
         lawIdOrNumOrRevisionId,
         elmParam || undefined
       );
-      const text = res.law_full_text || "本文が取得できませんでした。";
-      const parsedLawText = parseLawFullText(text);
-      this.popoverEl.textContent = parsedLawText;
+      const lawJson = res.law_full_text;
+      // ここで JSON 形式の法令本文を DOM に変換
+      const formattedContent = renderLawFullText(lawJson);
+      // 既存の内容をクリアしてから挿入
+      this.popoverEl.innerHTML = "";
+      this.popoverEl.appendChild(formattedContent);
     } catch (err) {
       this.popoverEl.textContent =
         "内容を取得できませんでした。廃止または移設された法令の可能性もあります。";

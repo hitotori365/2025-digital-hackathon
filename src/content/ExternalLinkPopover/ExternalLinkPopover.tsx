@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 
-import { fetcher as fetchLawData } from "./fetcher";
-import { parseLawFullText, fragmentToElm } from "./parser";
+import { fetchLawData } from "./fetcher";
+import { parseLawFullText } from "./parser";
+import { convertFragmentToElm } from "./converter";
 
 import styles from "./ExternalLinkPopover.module.css";
 
@@ -42,12 +43,10 @@ class Popover {
     this.triggerEl.setAttribute("popovertargetaction", "toggle");
   }
 
-  // リンクの直後に info アイコンを挿入（popover 本体は body に追加）
   private insertTrigger(): void {
     this.link.insertAdjacentElement("afterend", this.triggerEl);
   }
 
-  // 各種イベントリスナーのセットアップ
   private setupEventListeners(): void {
     // trigger クリック時に、既存のポップオーバーを削除して、自身のものを body に追加
     this.triggerEl.addEventListener("click", () => {
@@ -106,18 +105,19 @@ class Popover {
 
     let elmParam: string | null = null;
     if (url.hash) {
-      elmParam = fragmentToElm(url.hash);
+      elmParam = convertFragmentToElm(url.hash);
     }
     try {
       const res = await fetchLawData(
         lawIdOrNumOrRevisionId,
         elmParam || undefined
       );
-      const text = res.law_full_text || "本文が取得できません";
+      const text = res.law_full_text || "本文が取得できませんでした。";
       const parsedLawText = parseLawFullText(text);
       this.popoverEl.textContent = parsedLawText;
     } catch (err) {
-      this.popoverEl.textContent = "取得に失敗しました。";
+      this.popoverEl.textContent =
+        "内容を取得できませんでした。廃止または移設された法令の可能性もあります。";
     }
   }
 }

@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { querySelectorAllWithDelay } from "../utils/utils";
+import { querySelectorAllWithDelay } from "../../utils/utils";
 
 /**
  * HACK: テキストに全角数字が含まれているかどうかで、段落タイトルであるかどうかを判定している
@@ -11,18 +11,17 @@ function isParagraphTitle(text: string | null): boolean {
 }
 
 /**
- * span.paragraphtitle をハイライトする処理
+ * span.paragraphtitle に、ハイライト用のクラスを追加する
  */
-async function highlightArticleAndParagraph(): Promise<void> {
+async function addClassToArticleTitleAndParagraphTitle(): Promise<void> {
   try {
     // span.paragraphtitle要素を待機して取得
     const elements = await querySelectorAllWithDelay("span.paragraphtitle");
     elements.forEach((element) => {
       const text = element.textContent;
       // 全角数字が含まれる場合: オレンジ、含まれない場合: 赤
-      element.setAttribute(
-        "style",
-        `color: ${isParagraphTitle(text) ? "orange" : "red"};`
+      element.classList.add(
+        isParagraphTitle(text) ? "paragraph-title" : "article-title"
       );
     });
   } catch (error) {
@@ -32,15 +31,15 @@ async function highlightArticleAndParagraph(): Promise<void> {
 
 /**
  * React コンポーネント:
- * マウント時 (初回レンダリング時) に `highlightArticleAndParagraph` を実行。
+ * マウント時 (初回レンダリング時) に `addClassToArticleAndParagraph` を実行。
  */
-const HighlightParagraph: React.FC = () => {
+const DecorateLawTitles: React.FC = () => {
   useEffect(() => {
-    highlightArticleAndParagraph();
+    addClassToArticleTitleAndParagraphTitle();
   }, []);
 
   // DOM 操作だけを行うため、描画要素は不要
   return null;
 };
 
-export default HighlightParagraph;
+export default DecorateLawTitles;

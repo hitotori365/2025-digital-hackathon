@@ -1,0 +1,46 @@
+:root {
+  --accent-color: #333;
+}
+
+/* 章のタイトル */
+.chaptertitle {
+  color: var(--accent-color);
+  font-size: 1.6em !important;
+  border-bottom: 2px solid var(--accent-color);
+  margin-inline-start: 0px !important;
+  padding-bottom: 8px;
+}
+
+/* 節のタイトル */
+.sectiontitle {
+  color: var(--accent-color);
+  font-size: 1.4em !important;
+  border-bottom: 1px dotted var(--accent-color);
+  margin-inline-start: 0px !important;
+  padding-bottom: 3px;
+}
+
+/* 条のタイトル */
+.article-title {
+  color: var(--accent-color);
+  font-size: 1.2em;
+  padding-left: 8px;
+  border-left: 4px solid var(--accent-color);
+}
+
+/* 項のタイトル */
+.paragraph-title {
+  color: var(--accent-color);
+  padding-left: 16px;
+  border-left: 2px solid var(--accent-color);
+}
+
+/* 号のタイトル */
+span.itemtitle {
+  padding-left: 24px;
+}
+
+/* 号の中で列記する際に使われるタイトル（イ, ロ, ハ, ...） */
+.portiontitle {
+  padding-left: 32px;
+}

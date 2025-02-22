@@ -1,6 +1,7 @@
 import ReactDOM from "react-dom/client";
 
-import HighlightBrackets from "./HighlightBrackets";
+import UnderlineBrackets from "./UnderlineBrackets";
+import HighlightParagraph from "./HightlightParagraph";
 import HoverTooltip from "./HoverTooltip";
 import ExternalLinkPopover from "./ExternalLinkPopover/ExternalLinkPopover";
 import DecorateLawTitles from "./DecorateLawTitles/DecorateLawTitles";
@@ -14,8 +15,8 @@ function initialize() {
   root.render(
     <>
       <ExternalLinkPopover />
-      <HighlightBrackets />
-      <DecorateLawTitles />
+      <UnderlineBrackets />
+      <HighlightParagraph />
       <HoverTooltip />
     </>
   );

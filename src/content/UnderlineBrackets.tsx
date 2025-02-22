@@ -64,7 +64,6 @@ const analyzeBrackets = (
       } else {
         openBrackets.pop();
       }
-
       addSegment(currentSegment, depth, depth > STYLES.maxDepth);
       currentSegment = "";
       depth = Math.max(0, depth - 1);
@@ -86,28 +85,8 @@ const analyzeBrackets = (
   return { segments, errors };
 };
 
-// 括弧の深さに応じた下線スタイルを取得する関数
-const getUnderlineStyle = (depth: number): string => {
-  if (depth <= 0) return "";
-
-  // 深さに応じた下線を生成
-  const underlines = Array.from(
-    { length: Math.min(depth, STYLES.maxDepth) },
-    (_, i) => {
-      const color = STYLES.brackets[i].color;
-      const offset = i * 2; // 下線の位置をずらす
-      return `linear-gradient(${color}, ${color}) 0 ${100 + offset}% / 100% 2px no-repeat`;
-    }
-  );
-
-  return `
-    background: ${underlines.join(", ")};
-    padding-bottom: ${Math.min(depth, STYLES.maxDepth) * 2}px;
-  `;
-};
-
 /**
- * セグメントをHTML要素に変換する
+ * セグメントを HTML 要素に変換する（スタイルは depth に応じて付与）
  */
 const renderSegment = (segment: TextSegment): string => {
   if (segment.depth === 0) return segment.text;
@@ -126,20 +105,38 @@ async function underlineBrackets() {
     const elements = await querySelectorAllWithDelay("p.sentence");
 
     elements.forEach((element) => {
-      const text = element.innerHTML;
-      if (!text || (!text.includes("（") && !text.includes("）"))) return;
-
-      const { segments, errors } = analyzeBrackets(text);
-
-      // エラーがある場合は警告を表示
-      if (errors.length > 0) {
-        console.warn(errors);
-        element.setAttribute("title", errors.join("\n"));
-        element.classList.add("bracket-error");
+      const walker = document.createTreeWalker(
+        element,
+        NodeFilter.SHOW_TEXT,
+        null
+      );
+      const textNodes: Text[] = [];
+      let node;
+      while ((node = walker.nextNode())) {
+        textNodes.push(node as Text);
       }
 
-      // セグメントをレンダリング
-      element.innerHTML = segments.map(renderSegment).join("");
+      textNodes.forEach((textNode) => {
+        const text = textNode.textContent || "";
+        // 括弧が含まれない場合は処理しない
+        if (!text.includes("（") && !text.includes("）")) return;
+
+        const { segments, errors } = analyzeBrackets(text);
+        const replacedHTML = segments.map(renderSegment).join("");
+
+        // テキストノードを span でラップして、部分的に書き換え　ることで、全体の書き換えを避ける
+        const span = document.createElement("span");
+        span.innerHTML = replacedHTML;
+
+        // エラーがある場合は警告を表示
+        if (errors.length > 0) {
+          span.setAttribute("title", errors.join("\n"));
+          span.classList.add("bracket-error");
+          console.warn(errors);
+        }
+
+        textNode.parentNode?.replaceChild(span, textNode);
+      });
     });
   } catch (error) {
     console.error("要素取得に失敗:", error);

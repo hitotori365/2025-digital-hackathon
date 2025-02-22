@@ -14,17 +14,10 @@ function initialize() {
   const root = ReactDOM.createRoot(rootDiv);
   root.render(
     <>
-      {/* WARNING: 
-          HighlightBrackets と ExternalLinkPopover の順番を変えるとバグが発生する
-          WHY:
-          HighlightParagraph が innerHTML を変更するため、ExternalLinkPopoverが付与したイベントリスナーを削除してしまう
-          HighlightBrackets よりも後に呼び出さないいと上手く動作しないことがある
-       */}
-      <HoverTooltip />
       <UnderlineBrackets />
-      <ExternalLinkPopover />
       <AbbreviationLinker />
       <DecorateLawTitles />
+      <HoverTooltip />
       <ExternalLinkPopover />
     </>
   );

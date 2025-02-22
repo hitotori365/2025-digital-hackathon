@@ -3,8 +3,8 @@ import React, { useEffect } from "react";
 import { querySelectorAllWithDelay } from "../utils/utils";
 
 type Abbreviation = {
-  term: string;    // 略称
-  id: string;      // 参照先ID
+  term: string; // 略称
+  id: string; // 参照先ID
 };
 
 /**
@@ -28,20 +28,22 @@ const findParentId = (element: Element): string | null => {
  * テキストノードを略称リンクに変換する
  */
 const convertToLink = (node: Text, abbreviations: Abbreviation[]) => {
-  const container = document.createElement('span');
+  const container = document.createElement("span");
   let lastIndex = 0;
-  const text = node.textContent || '';
+  const text = node.textContent || "";
 
-  abbreviations.forEach(abbr => {
-    const pattern = new RegExp(abbr.term, 'g');
+  abbreviations.forEach((abbr) => {
+    const pattern = new RegExp(abbr.term, "g");
     let match: RegExpExecArray | null;
 
     while ((match = pattern.exec(text)) !== null) {
       // マッチ前のテキストを追加
-      container.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+      container.appendChild(
+        document.createTextNode(text.slice(lastIndex, match.index))
+      );
 
       // リンクを作成
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = `#${abbr.id}`;
       link.textContent = abbr.term;
       container.appendChild(link);
@@ -68,11 +70,12 @@ async function processAbbreviations() {
 
     // 略称を収集
     elements.forEach((element) => {
-      const textNodes = Array.from(element.childNodes)
-        .filter(node => node.nodeType === Node.TEXT_NODE) as Text[];
+      const textNodes = Array.from(element.childNodes).filter(
+        (node) => node.nodeType === Node.TEXT_NODE
+      ) as Text[];
 
-      textNodes.forEach(node => {
-        const text = node.textContent || '';
+      textNodes.forEach((node) => {
+        const text = node.textContent || "";
         const abbr = extractAbbreviation(text);
         if (abbr) {
           console.log(`Found abbreviation: ${abbr}`); // 追加
@@ -92,14 +95,14 @@ async function processAbbreviations() {
 
     // 略称をリンクに変換
     elements.forEach((element) => {
-      const textNodes = Array.from(element.childNodes)
-        .filter(node => node.nodeType === Node.TEXT_NODE) as Text[];
+      const textNodes = Array.from(element.childNodes).filter(
+        (node) => node.nodeType === Node.TEXT_NODE
+      ) as Text[];
 
-      textNodes.forEach(node => {
+      textNodes.forEach((node) => {
         convertToLink(node, abbreviations);
       });
     });
-
   } catch (error) {
     console.error("略称処理に失敗:", error);
   }

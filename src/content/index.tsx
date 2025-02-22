@@ -1,9 +1,10 @@
 import ReactDOM from "react-dom/client";
 
-import HighlightBrackets from "./HighlightBrackets";
-import HighlightParagraph from "./HightlightParagraph";
+import UnderlineBrackets from "./UnderlineBrackets";
 import HoverTooltip from "./HoverTooltip";
 import ExternalLinkPopover from "./ExternalLinkPopover/ExternalLinkPopover";
+import AbbreviationLinker from "./AbbreviationLinker";
+import DecorateLawTitles from "./DecorateLawTitles/DecorateLawTitles";
 
 function initialize() {
   const rootDiv = document.createElement("div");
@@ -19,11 +20,12 @@ function initialize() {
           HighlightParagraph が innerHTML を変更するため、ExternalLinkPopoverが付与したイベントリスナーを削除してしまう
           HighlightBrackets よりも後に呼び出さないいと上手く動作しないことがある
        */}
-      <HighlightBrackets />
-      <ExternalLinkPopover />
-
-      <HighlightParagraph />
       <HoverTooltip />
+      <UnderlineBrackets />
+      <ExternalLinkPopover />
+      <AbbreviationLinker />
+      <DecorateLawTitles />
+      <ExternalLinkPopover />
     </>
   );
 }

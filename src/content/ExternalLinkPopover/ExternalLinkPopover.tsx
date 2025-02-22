@@ -144,10 +144,7 @@ function setupLawPopoverObserver() {
     links.forEach((link) => setupPopover(link as HTMLAnchorElement));
   });
 
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true,
-  });
+  observer.observe(document.body, { childList: true, subtree: true });
 
   const existingLinks = document.querySelectorAll("a[href^='/law/']");
   existingLinks.forEach((link) => setupPopover(link as HTMLAnchorElement));

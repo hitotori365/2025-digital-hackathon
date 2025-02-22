@@ -1,17 +1,15 @@
 {
   "manifest_version": 3,
   "version": "1.0.0",
-  "name": "2025-digital-hackathon",
-  "description": "An Extension.js example.",
+  "name": "e-Gov法令検索フォーマッター(仮)",
+  "description": "e-Gov法令検索を読みやすくする拡張機能。次の機能を持つ：カッコの色別表記／条項号を視覚的に区別できるように表示／参照先の条文をpop overで表示／語の定義も参照先としてpop overで表示",
   "content_scripts": [
     {
-      "matches": ["*://*/*"],
+      "css": ["./src/content/DecorateLawTitles/lawTitles.css"],
+      "matches": ["https://laws.e-gov.go.jp/*"],
       "js": ["./src/content/index.tsx"]
     }
   ],
-  "icons": {
-    "48": "public/icon-48.png"
-  },
-  "host_permissions": ["*://*/*", "http://localhost/*"],
+  "icons": { "48": "public/icon-48.png" },
   "author": "Your Name"
 }

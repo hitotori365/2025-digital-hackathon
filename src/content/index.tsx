@@ -1,10 +1,10 @@
 import ReactDOM from "react-dom/client";
 
 import UnderlineBrackets from "./UnderlineBrackets";
-import HighlightParagraph from "./HightlightParagraph";
 import HoverTooltip from "./HoverTooltip";
 import ExternalLinkPopover from "./ExternalLinkPopover/ExternalLinkPopover";
 import AbbreviationLinker from "./AbbreviationLinker";
+import DecorateLawTitles from "./DecorateLawTitles/DecorateLawTitles";
 
 function initialize() {
   const rootDiv = document.createElement("div");
@@ -17,7 +17,7 @@ function initialize() {
       <AbbreviationLinker />
       <ExternalLinkPopover />
       <UnderlineBrackets />
-      <HighlightParagraph />
+      <DecorateLawTitles />
       <HoverTooltip />
     </>
   );

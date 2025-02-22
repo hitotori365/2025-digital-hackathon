@@ -63,26 +63,16 @@ const convertToLink = (node: Text, abbreviations: Abbreviation[]) => {
  */
 async function processAbbreviations() {
   try {
-    console.log("processAbbreviations started"); // 追加
-
     const elements = await querySelectorAllWithDelay("p.sentence");
-    console.log("Found elements:", elements.length); // 追加
-
     const abbreviations: Abbreviation[] = [];
 
     // 略称を収集
-    elements.forEach((element, index) => { // indexを追加
-      console.log(`Processing element ${index}:`, element); // 追加
-      
+    elements.forEach((element) => {
       const textNodes = Array.from(element.childNodes)
         .filter(node => node.nodeType === Node.TEXT_NODE) as Text[];
-      
-      console.log(`Found ${textNodes.length} text nodes in element ${index}`); // 追加
 
       textNodes.forEach(node => {
         const text = node.textContent || '';
-        console.log(`Checking text:`, text); // 追加
-        
         const abbr = extractAbbreviation(text);
         if (abbr) {
           console.log(`Found abbreviation: ${abbr}`); // 追加
@@ -95,17 +85,13 @@ async function processAbbreviations() {
       });
     });
 
-    console.log('Found abbreviations:', abbreviations);
-
+    // 略称が見つからなかったとき
     if (abbreviations.length === 0) {
-      console.log("No abbreviations found to process"); // 追加
       return;
     }
 
     // 略称をリンクに変換
-    elements.forEach((element, index) => { // indexを追加
-      console.log(`Converting links in element ${index}`); // 追加
-      
+    elements.forEach((element) => {
       const textNodes = Array.from(element.childNodes)
         .filter(node => node.nodeType === Node.TEXT_NODE) as Text[];
 
@@ -114,19 +100,13 @@ async function processAbbreviations() {
       });
     });
 
-    console.log("processAbbreviations completed"); // 追加
-
   } catch (error) {
     console.error("略称処理に失敗:", error);
   }
 }
 
-/**
- * React コンポーネント
- */
 const AbbreviationLinker: React.FC = () => {
   useEffect(() => {
-    console.log("AbbreviationLinker mounted"); // 追加
     processAbbreviations();
   }, []);
 

@@ -14,11 +14,11 @@ function initialize() {
   const root = ReactDOM.createRoot(rootDiv);
   root.render(
     <>
-      <AbbreviationLinker />
-      <ExternalLinkPopover />
       <UnderlineBrackets />
+      <AbbreviationLinker />
       <DecorateLawTitles />
       <HoverTooltip />
+      <ExternalLinkPopover />
     </>
   );
 }

@@ -14,23 +14,24 @@ type TextSegment = {
 
 const STYLES = {
   brackets: [
-    { color: 'rgba(27, 57, 147, 0.3)', depth: 1 },
-    { color: 'rgba(27, 57, 147, 0.6)', depth: 2 },
-    { color: 'rgba(27, 57, 147, 0.9)', depth: 3 },
+    { color: "rgba(27, 57, 147, 0.3)", depth: 1 },
+    { color: "rgba(27, 57, 147, 0.6)", depth: 2 },
+    { color: "rgba(27, 57, 147, 0.9)", depth: 3 },
   ] as BracketStyle[],
   maxDepth: 3,
 };
 
-
 /**
  * テキストを解析して括弧の深さと位置を分析する
  */
-const analyzeBrackets = (text: string): {
-  segments: TextSegment[],
-  errors: string[]
+const analyzeBrackets = (
+  text: string
+): {
+  segments: TextSegment[];
+  errors: string[];
 } => {
   let depth = 0;
-  let currentSegment = '';
+  let currentSegment = "";
   const segments: TextSegment[] = [];
   const errors: string[] = [];
   const openBrackets: number[] = [];
@@ -44,7 +45,7 @@ const analyzeBrackets = (text: string): {
   for (let i = 0; i < text.length; i++) {
     const char = text[i];
 
-    if (char === '（') {
+    if (char === "（") {
       // 現在のセグメントを追加
       addSegment(currentSegment, depth, depth > STYLES.maxDepth);
       currentSegment = char;
@@ -52,18 +53,19 @@ const analyzeBrackets = (text: string): {
       openBrackets.push(i);
 
       if (depth > STYLES.maxDepth) {
-        errors.push(`括弧の深さが最大値(${STYLES.maxDepth})を超えています。位置: ${i}`);
+        errors.push(
+          `括弧の深さが最大値(${STYLES.maxDepth})を超えています。位置: ${i}`
+        );
       }
-    } else if (char === '）') {
+    } else if (char === "）") {
       currentSegment += char;
       if (depth === 0) {
         errors.push(`閉じ括弧が多すぎます。位置: ${i}`);
       } else {
         openBrackets.pop();
       }
-
       addSegment(currentSegment, depth, depth > STYLES.maxDepth);
-      currentSegment = '';
+      currentSegment = "";
       depth = Math.max(0, depth - 1);
     } else {
       currentSegment += char;
@@ -75,41 +77,25 @@ const analyzeBrackets = (text: string): {
 
   // 閉じられていない括弧のチェック
   if (openBrackets.length > 0) {
-    errors.push(`閉じられていない括弧があります。位置: ${openBrackets.join(', ')}`);
+    errors.push(
+      `閉じられていない括弧があります。位置: ${openBrackets.join(", ")}`
+    );
   }
 
   return { segments, errors };
 };
 
-// 括弧の深さに応じた下線スタイルを取得する関数
-const getUnderlineStyle = (depth: number): string => {
-  if (depth <= 0) return '';
-  
-  // 深さに応じた下線を生成
-  const underlines = Array.from({ length: Math.min(depth, STYLES.maxDepth) }, (_, i) => {
-    const color = STYLES.brackets[i].color;
-    const offset = i * 2; // 下線の位置をずらす
-    return `linear-gradient(${color}, ${color}) 0 ${100 + offset}% / 100% 2px no-repeat`;
-  });
-
-  return `
-    background: ${underlines.join(', ')};
-    padding-bottom: ${(Math.min(depth, STYLES.maxDepth) * 2)}px;
-  `;
-};
-
 /**
- * セグメントをHTML要素に変換する
+ * セグメントを HTML 要素に変換する（スタイルは depth に応じて付与）
  */
 const renderSegment = (segment: TextSegment): string => {
   if (segment.depth === 0) return segment.text;
 
   const depth = Math.min(segment.depth, STYLES.maxDepth);
   const color = STYLES.brackets[depth - 1].color;
-  
+
   return `<span style="border-bottom: 2px solid ${color};">${segment.text}</span>`;
 };
-
 
 /**
  * 括弧とその中身をハイライトする関数
@@ -117,23 +103,40 @@ const renderSegment = (segment: TextSegment): string => {
 async function underlineBrackets() {
   try {
     const elements = await querySelectorAllWithDelay("p.sentence");
-    console.log("テキスト要素数:", elements.length);
 
     elements.forEach((element) => {
-      const text = element.innerHTML;
-      if (!text || (!text.includes("（") && !text.includes("）"))) return;
-
-      const { segments, errors } = analyzeBrackets(text);
-
-      // エラーがある場合は警告を表示
-      if (errors.length > 0) {
-        console.warn(errors);
-        element.setAttribute('title', errors.join('\n'));
-        element.classList.add('bracket-error');
+      const walker = document.createTreeWalker(
+        element,
+        NodeFilter.SHOW_TEXT,
+        null
+      );
+      const textNodes: Text[] = [];
+      let node;
+      while ((node = walker.nextNode())) {
+        textNodes.push(node as Text);
       }
 
-      // セグメントをレンダリング
-      element.innerHTML = segments.map(renderSegment).join('');
+      textNodes.forEach((textNode) => {
+        const text = textNode.textContent || "";
+        // 括弧が含まれない場合は処理しない
+        if (!text.includes("（") && !text.includes("）")) return;
+
+        const { segments, errors } = analyzeBrackets(text);
+        const replacedHTML = segments.map(renderSegment).join("");
+
+        // テキストノードを span でラップして、部分的に書き換え　ることで、全体の書き換えを避ける
+        const span = document.createElement("span");
+        span.innerHTML = replacedHTML;
+
+        // エラーがある場合は警告を表示
+        if (errors.length > 0) {
+          span.setAttribute("title", errors.join("\n"));
+          span.classList.add("bracket-error");
+          console.warn(errors);
+        }
+
+        textNode.parentNode?.replaceChild(span, textNode);
+      });
     });
   } catch (error) {
     console.error("要素取得に失敗:", error);

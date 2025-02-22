@@ -5,13 +5,12 @@
   "description": "An Extension.js example.",
   "content_scripts": [
     {
+      "css": ["./src/content/DecorateLawTitles/lawTitles.css"],
       "matches": ["*://*/*"],
       "js": ["./src/content/index.tsx"]
     }
   ],
-  "icons": {
-    "48": "public/icon-48.png"
-  },
+  "icons": { "48": "public/icon-48.png" },
   "host_permissions": ["*://*/*", "http://localhost/*"],
   "author": "Your Name"
 }

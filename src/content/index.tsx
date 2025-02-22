@@ -1,6 +1,6 @@
 import ReactDOM from "react-dom/client";
 
-import UnderlineBrackets from "./UnderLineBrackets";
+import UnderlineBrackets from "./UnderlineBrackets";
 import HighlightParagraph from "./HightlightParagraph";
 import HoverTooltip from "./HoverTooltip";
 import ExternalLinkPopover from "./ExternalLinkPopover/ExternalLinkPopover";

@@ -17,8 +17,8 @@ function initialize() {
       <UnderlineBrackets />
       <AbbreviationLinker />
       <DecorateLawTitles />
-      <ExternalLinkPopover />
       <HoverTooltip />
+      <ExternalLinkPopover />
     </>
   );
 }

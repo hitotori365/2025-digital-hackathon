@@ -8,11 +8,18 @@ type Abbreviation = {
 
 /**
  * 文字列から略称定義を抽出する
- * 例：～以下「○○」という。
+ * 例1:以下〜「○○」という。
+ * 例2:以下〜「○○」と総称する。
  */
 const extractAbbreviation = (text: string): string | null => {
-  const match = text.match(/以下「([^」]+)」という。/);
-  return match ? match[1] : null;
+  // 「以下」から始まる部分のうち、引用符「」内の文字列を抽出する
+  const regex = /以下[\s\S]*?「([^」]+)」/;
+  const match = text.match(regex);
+  if (!match) return null;
+  let abbr = match[1];
+  // 末尾に「とする」「という」「と総称する」があれば削除（末尾以外に現れる場合はそのまま残す）
+  abbr = abbr.replace(/(と(?:する|いう|総称する))$/, "");
+  return abbr;
 };
 
 /**
@@ -46,9 +53,7 @@ const convertToLink = (node: Text, abbreviations: Abbreviation[]) => {
   const text = node.textContent || "";
   let lastIndex = 0;
 
-  // 各略称ごとにマッチ箇所を検索（複数略称が同一ノード内にある場合にも対応）
-  // ※複数パターンが混在する場合、処理順序に注意が必要です
-  // ここでは全略称について、テキスト全体を走査する方法を採用
+  // 各略称ごとにマッチ箇所を検索
   const matches: { index: number; term: string; length: number }[] = [];
   abbreviations.forEach((abbr) => {
     const pattern = new RegExp(abbr.term, "g");
@@ -57,6 +62,7 @@ const convertToLink = (node: Text, abbreviations: Abbreviation[]) => {
       matches.push({ index: m.index, term: abbr.term, length: m[0].length });
     }
   });
+
   // マッチ箇所でインデックス順にソート
   matches.sort((a, b) => a.index - b.index);
 

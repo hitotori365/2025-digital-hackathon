@@ -2,45 +2,69 @@
   --accent-color: #333;
 }
 
-/* 章のタイトル */
-.chaptertitle {
+/* 編のタイトル */
+.parttitle,
+.PartTitle {
   color: var(--accent-color);
-  font-size: 1.6em !important;
+  font-size: 2.2rem !important;
+  border-bottom: 3px double var(--accent-color);
+  margin-inline-start: 0px !important;
+  padding-bottom: 10px;
+}
+
+/* 章のタイトル */
+.chaptertitle,
+.ChapterTitle {
+  color: var(--accent-color);
+  font-size: 2rem !important;
   border-bottom: 2px solid var(--accent-color);
   margin-inline-start: 0px !important;
   padding-bottom: 8px;
 }
 
 /* 節のタイトル */
-.sectiontitle {
+.sectiontitle,
+.SectionTitle {
   color: var(--accent-color);
-  font-size: 1.4em !important;
-  border-bottom: 1px dotted var(--accent-color);
+  font-size: 1.8rem !important;
+  border-bottom: 1px solid var(--accent-color);
   margin-inline-start: 0px !important;
-  padding-bottom: 3px;
+  padding-bottom: 6px;
+}
+
+/* 款のタイトル */
+.subsectiontitle,
+.SubsectionTitle {
+  color: var(--accent-color);
+  border-bottom: 1px dashed var(--accent-color);
+  margin-inline-start: 0px !important;
+  padding-bottom: 4px;
 }
 
 /* 条のタイトル */
-.article-title {
+.articletitle,
+.ArticleTitle {
   color: var(--accent-color);
-  font-size: 1.2em;
   padding-left: 8px;
   border-left: 4px solid var(--accent-color);
 }
 
 /* 項のタイトル */
-.paragraph-title {
+.paragraphtitle,
+.ParagraphTitle {
   color: var(--accent-color);
   padding-left: 16px;
   border-left: 2px solid var(--accent-color);
 }
 
 /* 号のタイトル */
-span.itemtitle {
+.itemtitle,
+.ItemTitle {
   padding-left: 24px;
 }
 
 /* 号の中で列記する際に使われるタイトル（イ, ロ, ハ, ...） */
-.portiontitle {
+.portiontitle,
+.PortionTitle {
   padding-left: 32px;
 }

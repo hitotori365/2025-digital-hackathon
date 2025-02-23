@@ -1,4 +1,3 @@
-// src/content/HoverTooltip.tsx
 import React, { useEffect } from "react";
 
 const HoverTooltip: React.FC = () => {
@@ -21,20 +20,14 @@ const HoverTooltip: React.FC = () => {
           const tooltip = document.querySelector(
             `[data-tooltip-id="${tooltipId}"]`
           );
-          // ポップアップが存在しないか、ホバー中なら何もしない
           if (!tooltip || tooltip.matches(":hover")) return;
-
           tooltip.remove();
           const parentRect = tooltip.getBoundingClientRect();
           const childTooltips = document.querySelectorAll(".hover-tooltip");
-
           childTooltips.forEach((childTooltip) => {
             const childTooltipElement = childTooltip as HTMLElement;
-            // 自分自身なら無視
             if (childTooltipElement.dataset.tooltipId === tooltipId) return;
-
             const childRect = childTooltipElement.getBoundingClientRect();
-            // 親の右側にある要素のみ削除
             if (childRect.left > parentRect.left) {
               childTooltip.remove();
             }
@@ -121,9 +114,7 @@ const HoverTooltip: React.FC = () => {
       // ポップアップのホバーイベント
       tooltip.addEventListener("mouseenter", () => {
         clearHideTimeout(tooltipId);
-        if (parentTooltipId) {
-          clearHideTimeout(parentTooltipId);
-        }
+        if (parentTooltipId) clearHideTimeout(parentTooltipId);
       });
 
       tooltip.addEventListener("mouseleave", (e: MouseEvent) => {
@@ -143,9 +134,7 @@ const HoverTooltip: React.FC = () => {
 
         if (!isMovingToChild) {
           scheduleHideTooltip(tooltipId);
-          if (parentTooltipId) {
-            scheduleHideTooltip(parentTooltipId);
-          }
+          if (parentTooltipId) scheduleHideTooltip(parentTooltipId);
         }
       });
 
@@ -191,29 +180,26 @@ const HoverTooltip: React.FC = () => {
       });
     };
 
-    // 既存および追加された p.sentence 内のリンクへイベントをセットアップする関数
-    const processSentenceLinks = (root: ParentNode = document) => {
-      const sentences = root.querySelectorAll("p.sentence");
-      sentences.forEach((sentence) => {
-        const links = sentence.querySelectorAll("a");
-        links.forEach((link) => {
-          if (!link.dataset.hoverTooltipInitialized) {
-            link.dataset.hoverTooltipInitialized = "true";
-            setupLinkEvents(link as HTMLAnchorElement);
-          }
-        });
+    // .main-content 内の全リンクに対してイベントを設定する
+    const processMainContentLinks = (root: ParentNode = document) => {
+      const links: any =
+        root.querySelectorAll<HTMLAnchorElement>(".main-content a");
+      links.forEach((link: HTMLAnchorElement) => {
+        if (!link.dataset.hoverTooltipInitialized) {
+          link.dataset.hoverTooltipInitialized = "true";
+          setupLinkEvents(link as HTMLAnchorElement);
+        }
       });
     };
 
-    // 初回レンダリング時に既存リンクを処理
-    processSentenceLinks();
+    // 初回レンダリング時に .main-content 内のリンクを処理
+    processMainContentLinks();
 
-    // MutationObserver を利用して DOM 変更時に新たなリンクへイベントを設定
     const observer = new MutationObserver((mutationsList) => {
       mutationsList.forEach((mutation) => {
         mutation.addedNodes.forEach((node) => {
           if (node.nodeType === Node.ELEMENT_NODE) {
-            processSentenceLinks(node as Element);
+            processMainContentLinks(node as Element);
           }
         });
       });

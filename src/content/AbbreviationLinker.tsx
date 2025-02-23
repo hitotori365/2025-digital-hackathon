@@ -67,8 +67,9 @@ const convertToLink = (node: Text, abbreviations: Abbreviation[]) => {
   matches.sort((a, b) => a.index - b.index);
 
   matches.forEach((match) => {
+    // 重複する箇所はスキップ
     if (match.index < lastIndex) {
-      return; // すでに置換済みの部分はスキップ
+      return;
     }
     // マッチ前のテキストを追加
     container.appendChild(
@@ -95,11 +96,11 @@ const convertToLink = (node: Text, abbreviations: Abbreviation[]) => {
  */
 async function processAbbreviations() {
   try {
-    // .article クラスを持つ要素全体を対象に（<div>、<article>の両方に対応）
-    const elements = await querySelectorAllWithDelay(".article");
+    // .main-content 内の .article 要素全体を対象に（<div>、<article> の両方に対応）
+    const elements = await querySelectorAllWithDelay(".main-content .article");
     const abbreviations: Abbreviation[] = [];
 
-    // 各記事内のすべてのテキストノードから略称定義を収集
+    // 各記事内の全テキストノードから略称定義を収集
     elements.forEach((element) => {
       const textNodes = getTextNodes(element);
       textNodes.forEach((node) => {
@@ -118,7 +119,7 @@ async function processAbbreviations() {
 
     if (abbreviations.length === 0) return;
 
-    // 収集した略称をすべての記事内のテキストノードに適用
+    // 収集した略称を全記事内のテキストノードに適用
     elements.forEach((element) => {
       const textNodes = getTextNodes(element);
       textNodes.forEach((node) => {

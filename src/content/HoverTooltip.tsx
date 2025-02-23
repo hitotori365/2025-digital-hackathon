@@ -181,13 +181,14 @@ const HoverTooltip: React.FC = () => {
     };
 
     // .main-content 内の全リンクに対してイベントを設定する
-    const processMainContentLinks = (root: ParentNode = document) => {
-      const links: any =
-        root.querySelectorAll<HTMLAnchorElement>(".main-content a");
+    const processMainContentLinks = (root: ParentNode = document): void => {
+      const links = root.querySelectorAll<HTMLAnchorElement>(
+        "main.main-content a"
+      );
       links.forEach((link: HTMLAnchorElement) => {
         if (!link.dataset.hoverTooltipInitialized) {
           link.dataset.hoverTooltipInitialized = "true";
-          setupLinkEvents(link as HTMLAnchorElement);
+          setupLinkEvents(link);
         }
       });
     };

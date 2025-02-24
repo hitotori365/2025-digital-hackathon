@@ -4,6 +4,16 @@
 
 ## Available Scripts
 
+### インストール
+
+プロジェクトに必要な依存関係をインストールするには、次のコマンドを実行します。
+
+```bash
+npm install
+```
+
+###
+
 In the project directory, you can run the following scripts:
 
 ### npm dev
@@ -24,7 +34,9 @@ npm start
 
 ### npm build
 
-**Build for Production**: This command builds your extension for production. It optimizes and bundles your extension, preparing it for deployment to the target browser's store.
+**Build for Production**: このコマンドは、拡張機能を本番環境用にビルドします。拡張機能を最適化およびバンドルし、対象ブラウザのストアへのデプロイに備えます。
+
+**Note**: ビルドを実行する前に、`extension`パッケージがグローバルにインストールされていることを確認してください。まだインストールされていない場合は、次のコマンドを実行してください: `npm install -g extension`
 
 ```bash
 npm build

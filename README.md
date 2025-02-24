@@ -4,6 +4,16 @@
 
 ## Available Scripts
 
+### インストール
+
+プロジェクトに必要な依存関係をインストールするには、次のコマンドを実行します。
+
+```bash
+npm install
+```
+
+###
+
 In the project directory, you can run the following scripts:
 
 ### npm dev
@@ -24,11 +34,19 @@ npm start
 
 ### npm build
 
-**Build for Production**: This command builds your extension for production. It optimizes and bundles your extension, preparing it for deployment to the target browser's store.
+**Build for Production**: このコマンドは、拡張機能を本番環境用にビルドします。拡張機能を最適化およびバンドルし、対象ブラウザのストアへのデプロイに備えます。
+
+**Note**: ビルドを実行する前に、`extension`パッケージがグローバルにインストールされていることを確認してください。まだインストールされていない場合は、次のコマンドを実行してください: `npm install -g extension`
 
 ```bash
 npm build
 ```
+
+### Chrome拡張のローカル環境実行
+1. Chromeブラウザを開き、URL欄に```chrome://extensions/```を入力して遷移
+2. "パッケージ化されていない拡張機能を読み込む"ボタンを押下
+3. ```dist/chrome```を選択
+4. [e-Gov法令検索](https://laws.e-gov.go.jp/)で法令を開く
 
 ## Learn More
 

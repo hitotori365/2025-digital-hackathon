@@ -42,6 +42,12 @@ npm start
 npm build
 ```
 
+### Chrome拡張のローカル環境実行
+1. Chromeブラウザを開き、URL欄に```chrome://extensions/```を入力して遷移
+2. "パッケージ化されていない拡張機能を読み込む"ボタンを押下
+3. ```dist/chrome```を選択
+4. [e-Gov法令検索](https://laws.e-gov.go.jp/)で法令を開く
+
 ## Learn More
 
 To learn more about creating cross-browser extensions with Extension.js, visit the [official documentation](https://extension.js.org).

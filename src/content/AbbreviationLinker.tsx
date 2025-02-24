@@ -1,104 +1,124 @@
-// AbbreviationLinker.tsx
 import React, { useEffect } from "react";
 import { querySelectorAllWithDelay } from "../utils/utils";
 
 type Abbreviation = {
   term: string; // 略称
-  id: string; // 参照先ID
+  id: string; // 参照先ID（ツールチップで表示する要素）
 };
 
 /**
  * 文字列から略称定義を抽出する
+ * 例1: 以下〜「○○」という。
+ * 例2: 以下〜「○○」と総称する。
  */
 const extractAbbreviation = (text: string): string | null => {
-  const match = text.match(/以下「([^」]+)」という。/);
-  return match ? match[1] : null;
+  const regex = /以下[\s\S]*?「([^」]+)」/;
+  const match = text.match(regex);
+  if (!match) return null;
+  let abbr = match[1];
+  abbr = abbr.replace(/(と(?:する|いう|総称する))$/, "");
+  return abbr;
 };
 
 /**
- * 要素のIDを再帰的に取得する
+ * 指定ノード以下のすべてのテキストノードを再帰的に取得する
  */
-const findParentId = (element: Element): string | null => {
-  if (!element) return null;
-  if (element.id) return element.id;
-  return element.parentElement ? findParentId(element.parentElement) : null;
+const getTextNodes = (node: Node): Text[] => {
+  let texts: Text[] = [];
+  if (node.nodeType === Node.TEXT_NODE) {
+    texts.push(node as Text);
+  } else {
+    node.childNodes.forEach((child) => {
+      texts = texts.concat(getTextNodes(child));
+    });
+  }
+  return texts;
 };
 
 /**
- * テキストノードを略称リンクに変換する
+ * もし対象の要素に id がなければ、一意な id を付与して返す
+ */
+const ensureElementId = (element: Element): string => {
+  if (element.id) return element.id;
+  const newId = `generated-id-${Math.random().toString(36).substr(2, 9)}`;
+  element.id = newId;
+  return newId;
+};
+
+/**
+ * テキストノード内の略称をリンクに変換する
  */
 const convertToLink = (node: Text, abbreviations: Abbreviation[]) => {
+  // 既にリンク (<a> 要素) 内にある場合は変換しない
+  if (node.parentElement?.closest("a")) {
+    return;
+  }
   const container = document.createElement("span");
-  let lastIndex = 0;
   const text = node.textContent || "";
+  let lastIndex = 0;
+  const matches: { index: number; term: string; length: number }[] = [];
 
   abbreviations.forEach((abbr) => {
     const pattern = new RegExp(abbr.term, "g");
-    let match: RegExpExecArray | null;
-
-    while ((match = pattern.exec(text)) !== null) {
-      // マッチ前のテキストを追加
-      container.appendChild(
-        document.createTextNode(text.slice(lastIndex, match.index))
-      );
-
-      // リンクを作成
-      const link = document.createElement("a");
-      link.href = `#${abbr.id}`;
-      link.textContent = abbr.term;
-      container.appendChild(link);
-
-      lastIndex = pattern.lastIndex;
+    let m: RegExpExecArray | null;
+    while ((m = pattern.exec(text)) !== null) {
+      matches.push({ index: m.index, term: abbr.term, length: m[0].length });
     }
   });
+  matches.sort((a, b) => a.index - b.index);
 
-  // 残りのテキストを追加
+  matches.forEach((match) => {
+    if (match.index < lastIndex) return;
+    container.appendChild(
+      document.createTextNode(text.slice(lastIndex, match.index))
+    );
+    const abbr = abbreviations.find((a) => a.term === match.term);
+    const link = document.createElement("a");
+    // リンク先は対象要素の id（後述の ensureElementId で設定）
+    link.href = abbr ? `#${abbr.id}` : "#";
+    link.textContent = match.term;
+    container.appendChild(link);
+    lastIndex = match.index + match.length;
+  });
+
   if (lastIndex < text.length) {
     container.appendChild(document.createTextNode(text.slice(lastIndex)));
   }
-
   node.parentNode?.replaceChild(container, node);
 };
 
 /**
  * ページ内の略称を処理する
  */
-async function processAbbreviations() {
+async function processAbbreviations(): Promise<void> {
   try {
-    const elements = await querySelectorAllWithDelay("p.sentence");
+    // 対象は <main class="main-content"> 内の全子孫要素
+    const elements = await querySelectorAllWithDelay("main.main-content");
     const abbreviations: Abbreviation[] = [];
 
-    // 略称を収集
     elements.forEach((element) => {
-      const textNodes = Array.from(element.childNodes).filter(
-        (node) => node.nodeType === Node.TEXT_NODE
-      ) as Text[];
-
+      const textNodes = getTextNodes(element);
       textNodes.forEach((node) => {
         const text = node.textContent || "";
         const abbr = extractAbbreviation(text);
         if (abbr) {
-          console.log(`Found abbreviation: ${abbr}`); // 追加
-          const id = findParentId(element);
-          if (id) {
-            console.log(`Found ID: ${id}`); // 追加
+          console.log(`Found abbreviation: ${abbr}`);
+          const targetEl = node.parentElement;
+          if (targetEl) {
+            const id = ensureElementId(targetEl);
+            console.log(`Using target ID: ${id}`);
             abbreviations.push({ term: abbr, id });
           }
         }
       });
     });
-
-    // 略称が見つからなかったとき
+    console.log("Collected abbreviations:", abbreviations);
     if (abbreviations.length === 0) {
+      console.log("略称が見つかりませんでした");
       return;
     }
-
-    // 略称をリンクに変換
     elements.forEach((element) => {
-      const textNodes = Array.from(element.childNodes).filter(
-        (node) => node.nodeType === Node.TEXT_NODE
-      ) as Text[];
-
+      const textNodes = getTextNodes(element);
       textNodes.forEach((node) => {
         convertToLink(node, abbreviations);
       });
@@ -111,8 +131,15 @@ async function processAbbreviations() {
 const AbbreviationLinker: React.FC = () => {
   useEffect(() => {
     processAbbreviations();
-  }, []);
 
+    const observer = new MutationObserver(() => {
+      processAbbreviations();
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
   return null;
 };
 

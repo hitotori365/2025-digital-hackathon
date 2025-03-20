@@ -13,6 +13,7 @@ import styles from "./ExternalLinkPopover.module.css";
 class Popover {
   private popoverEl!: HTMLElement;
   private link: HTMLAnchorElement;
+  private showTimeout: NodeJS.Timeout | null = null;  // タイムアウト用のプロパティを追加
 
   constructor(link: HTMLAnchorElement) {
     console.log("Creating popover for:", link.href);
@@ -37,12 +38,24 @@ class Popover {
     // リンクへのホバーイベント
     this.link.addEventListener("mouseenter", () => {
       console.log("Link hovered");
-      Popover.removeExistingPopovers();
-      if (!document.getElementById(this.popoverEl.id)) {
-        document.body.appendChild(this.popoverEl);
-        if (this.popoverEl.hasAttribute("popover")) {
-          (this.popoverEl as any).showPopover?.();
+      // 0.3秒後にポップオーバーを表示
+      this.showTimeout = setTimeout(() => {
+        Popover.removeExistingPopovers();
+        if (!document.getElementById(this.popoverEl.id)) {
+          document.body.appendChild(this.popoverEl);
+          if (this.popoverEl.hasAttribute("popover")) {
+            (this.popoverEl as any).showPopover?.();
+          }
         }
+      }, 300);
+    });
+
+    // マウスが離れたときのイベントを追加
+    this.link.addEventListener("mouseleave", () => {
+      // タイムアウトをクリア
+      if (this.showTimeout) {
+        clearTimeout(this.showTimeout);
+        this.showTimeout = null;
       }
     });
 

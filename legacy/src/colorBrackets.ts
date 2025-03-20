@@ -37,8 +37,6 @@ const highlightBrackets = async () => {
   try {
     // p.sentence要素を待機して取得
     const elements = await querySelectorAllWithDelay('p.sentence')
-    console.log('テキスト要素数:', elements.length)
-
     elements.forEach((element) => {
       const text = element.textContent
       if (text && (text.includes('（') || text.includes('）'))) {

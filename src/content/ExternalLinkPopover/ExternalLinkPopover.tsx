@@ -13,10 +13,9 @@ import styles from "./ExternalLinkPopover.module.css";
 class Popover {
   private popoverEl!: HTMLElement;
   private link: HTMLAnchorElement;
-  private showTimeout: NodeJS.Timeout | null = null;  // タイムアウト用のプロパティを追加
+  private showTimeout: NodeJS.Timeout | null = null;
 
   constructor(link: HTMLAnchorElement) {
-    console.log("Creating popover for:", link.href);
     this.link = link;
     this.createPopover();
     this.setupEventListeners();
@@ -35,163 +34,158 @@ class Popover {
   }
 
   private setupEventListeners(): void {
-    // リンクへのホバーイベント
-    this.link.addEventListener("mouseenter", () => {
-      console.log("Link hovered");
-      // 0.3秒後にポップオーバーを表示
-      this.showTimeout = setTimeout(() => {
-        Popover.removeExistingPopovers();
-        if (!document.getElementById(this.popoverEl.id)) {
-          document.body.appendChild(this.popoverEl);
-          if (this.popoverEl.hasAttribute("popover")) {
-            (this.popoverEl as any).showPopover?.();
-          }
-        }
-      }, 300);
-    });
+    this.setupHoverEvents();
+    this.setupToggleEvent();
+  }
 
-    // マウスが離れたときのイベントを追加
-    this.link.addEventListener("mouseleave", () => {
-      // タイムアウトをクリア
-      if (this.showTimeout) {
-        clearTimeout(this.showTimeout);
-        this.showTimeout = null;
-      }
-    });
+  private setupHoverEvents(): void {
+    this.link.addEventListener("mouseenter", this.handleMouseEnter.bind(this));
+    this.link.addEventListener("mouseleave", this.handleMouseLeave.bind(this));
+  }
 
-    // ポップオーバーのtoggleイベント
+  private handleMouseEnter(): void {
+    this.showTimeout = setTimeout(this.showPopover.bind(this), 300);
+  }
+
+  private handleMouseLeave(): void {
+    if (!this.showTimeout) return;
+    clearTimeout(this.showTimeout);
+    this.showTimeout = null;
+  }
+
+  private showPopover(): void {
+    Popover.removeExistingPopovers();
+    if (document.getElementById(this.popoverEl.id)) return;
+    
+    document.body.appendChild(this.popoverEl);
+    if (this.popoverEl.hasAttribute("popover")) {
+      (this.popoverEl as any).showPopover?.();
+    }
+  }
+
+  private setupToggleEvent(): void {
     this.popoverEl.addEventListener("toggle", async () => {
-      console.log("Popover toggled");
-      if (this.popoverEl.matches(":popover-open")) {
-        this.adjustPosition();
-        this.popoverEl.textContent = "読込中...";
-        await this.updateContent();
-      }
+      if (!this.popoverEl.matches(":popover-open")) return;
+      
+      this.adjustPosition();
+      this.popoverEl.textContent = "読込中...";
+      await this.updateContent();
     });
   }
 
   private adjustPosition(): void {
-    // トリガー要素の代わりにリンク要素の位置を基準にする
     const rect = this.link.getBoundingClientRect();
     this.popoverEl.style.position = "absolute";
     this.popoverEl.style.top = `${rect.bottom + window.scrollY + 5}px`;
     this.popoverEl.style.left = `${rect.left + window.scrollX}px`;
   }
 
-  // 法令データの取得と内容更新
   private async updateContent(): Promise<void> {
     try {
-      this.popoverEl.textContent = "読込中...";
-      
       const href = this.link.getAttribute("href");
       if (!href) return;
 
-      // ページ内リンクの場合
-      if (href.startsWith("#")) {
-        const targetId = href.substring(1);
-        const targetElement = document.getElementById(targetId);
-        if (targetElement) {
-          const clone = targetElement.cloneNode(true) as HTMLElement;
-          this.popoverEl.innerHTML = "";
-          this.popoverEl.appendChild(clone);
-        } else {
-          this.popoverEl.textContent = "参照先が見つかりません。";
-        }
-        return;
-      }
-
-      // 法令への外部リンクの場合（既存のコード）
-      const lawId = await this.getLawId();
-      if (!lawId) {
-        this.popoverEl.textContent = "取得に失敗しました。";
-        return;
-      }
-
-      const elmParam = this.getElmParam();
-      const res = await fetchLawData(lawId, elmParam || undefined);
-      
-      const fragment = document.createDocumentFragment();
-      const formattedContent = renderLawFullText(res.law_full_text);
-      fragment.appendChild(formattedContent);
-      
-      this.popoverEl.innerHTML = "";
-      this.popoverEl.appendChild(fragment);
+      await this.updateContentByType(href);
     } catch (err) {
-      console.error("ポップオーバーの更新に失敗:", err);
       this.popoverEl.textContent =
         "内容を取得できませんでした。廃止または移設された法令の可能性もあります。";
     }
   }
 
-  private async getLawId(): Promise<string | null> {
-    let lawId = this.link.dataset.lawId;
-    if (!lawId) {
-      const url = new URL(
-        this.link.getAttribute("href") || "",
-        document.baseURI
-      );
-      const parts = url.pathname.split("/");
-      if (parts.length >= 3 && parts[1] === "law") {
-        lawId = parts[2];
-        this.link.dataset.lawId = lawId;
-      }
+  private async updateContentByType(href: string): Promise<void> {
+    if (href.startsWith("#")) {
+      await this.updateInternalLink(href);
+      return;
     }
-    return lawId || null;
+    await this.updateExternalLink();
+  }
+
+  private async updateInternalLink(href: string): Promise<void> {
+    const targetId = href.substring(1);
+    const targetElement = document.getElementById(targetId);
+    if (!targetElement) {
+      this.popoverEl.textContent = "参照先が見つかりません。";
+      return;
+    }
+
+    const clone = targetElement.cloneNode(true) as HTMLElement;
+    this.popoverEl.innerHTML = "";
+    this.popoverEl.appendChild(clone);
+  }
+
+  private async updateExternalLink(): Promise<void> {
+    const lawId = await this.getLawId();
+    if (!lawId) {
+      this.popoverEl.textContent = "取得に失敗しました。";
+      return;
+    }
+
+    const elmParam = this.getElmParam();
+    const res = await fetchLawData(lawId, elmParam || undefined);
+    
+    const fragment = document.createDocumentFragment();
+    const formattedContent = renderLawFullText(res.law_full_text);
+    fragment.appendChild(formattedContent);
+    
+    this.popoverEl.innerHTML = "";
+    this.popoverEl.appendChild(fragment);
+  }
+
+  private async getLawId(): Promise<string | null> {
+    if (this.link.dataset.lawId) return this.link.dataset.lawId;
+
+    const url = new URL(this.link.getAttribute("href") || "", document.baseURI);
+    const parts = url.pathname.split("/");
+    
+    if (parts.length < 3 || parts[1] !== "law") return null;
+    
+    const lawId = parts[2];
+    this.link.dataset.lawId = lawId;
+    return lawId;
   }
 
   private getElmParam(): string | null {
     const href = this.link.getAttribute("href");
     if (!href) return null;
-    const url = new URL(href, window.location.origin);
-    const pathParts = url.pathname.split("/");
-    let lawIdOrNumOrRevisionId = "";
-    if (pathParts.length >= 3 && pathParts[1] === "law") {
-      lawIdOrNumOrRevisionId = pathParts[2];
-    }
 
-    let elmParam: string | null = null;
-    if (url.hash) {
-      elmParam = convertFragmentToElm(url.hash);
-    }
-    return elmParam;
+    const url = new URL(href, window.location.origin);
+    if (!url.hash) return null;
+
+    return convertFragmentToElm(url.hash);
   }
 }
 
 /**
  * 対象となるリンクに対して Popover クラスを適用する
  */
-function setupPopover(link: HTMLAnchorElement) {
-  // 無限ループに陥るため、すでに適用済みならスキップする
+function setupPopover(link: HTMLAnchorElement): void {
   if (link.dataset.popoverInitialized === "true") return;
 
-  // 有効なリンクかチェック
   const href = link.getAttribute("href");
   if (!href) return;
   
-  // 法令への外部リンクまたはページ内リンクの場合
-  if (href.startsWith("/law/") || href.startsWith("#")) {
-    link.dataset.popoverInitialized = "true";
-    new Popover(link);
-  }
+  if (!href.startsWith("/law/") && !href.startsWith("#")) return;
+
+  link.dataset.popoverInitialized = "true";
+  new Popover(link);
 }
 
 /**
  * 対象となるリンクの追加・変更を監視する
  */
-function setupLawPopoverObserver() {
-  // まず直接実行して動作確認
-  const links = document.querySelectorAll("a[href^='/law/'], a[href^='#']");
-  console.log("Found links:", links.length);
-  links.forEach((link) => setupPopover(link as HTMLAnchorElement));
+function setupLawPopoverObserver(): MutationObserver {
+  const processLinks = (element: Element) => {
+    const links = element.querySelectorAll("a[href^='/law/'], a[href^='#']");
+    links.forEach(link => setupPopover(link as HTMLAnchorElement));
+  };
 
-  // その後MutationObserverを設定
-  const observer = new MutationObserver((mutations) => {
+  processLinks(document.body);
+
+  const observer = new MutationObserver(mutations => {
     mutations.forEach(mutation => {
       mutation.addedNodes.forEach(node => {
-        if (node instanceof HTMLElement) {
-          const links = node.querySelectorAll("a[href^='/law/'], a[href^='#']");
-          links.forEach((link) => setupPopover(link as HTMLAnchorElement));
-        }
+        if (!(node instanceof HTMLElement)) return;
+        processLinks(node);
       });
     });
   });
@@ -206,9 +200,7 @@ function setupLawPopoverObserver() {
 
 const ExternalLinkPopover = () => {
   useEffect(() => {
-    console.log("ExternalLinkPopover mounted"); // デバッグログ追加
     const observer = setupLawPopoverObserver();
-    
     return () => {
       Popover.removeExistingPopovers();
       observer.disconnect();

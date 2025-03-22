@@ -1,219 +1,123 @@
 import React, { useEffect } from "react";
 
-const HoverTooltip: React.FC = () => {
-  useEffect(() => {
-    let hideTimeouts: Map<string, NodeJS.Timeout> = new Map();
+type TooltipState = {
+  element: HTMLElement;
+  timeout: NodeJS.Timeout;
+};
 
-    const clearHideTimeout = (tooltipId: string) => {
-      const timeout = hideTimeouts.get(tooltipId);
-      if (timeout) {
-        clearTimeout(timeout);
-        hideTimeouts.delete(tooltipId);
-      }
-    };
+class Tooltip {
+  private tooltipEl!: HTMLElement;
+  private link: HTMLAnchorElement;
+  private showTimeout: NodeJS.Timeout | null = null;
 
-    const scheduleHideTooltip = (tooltipId: string) => {
-      clearHideTimeout(tooltipId);
-      hideTimeouts.set(
-        tooltipId,
-        setTimeout(() => {
-          const tooltip = document.querySelector(
-            `[data-tooltip-id="${tooltipId}"]`
-          );
-          if (!tooltip || tooltip.matches(":hover")) return;
-          tooltip.remove();
-          const parentRect = tooltip.getBoundingClientRect();
-          const childTooltips = document.querySelectorAll(".hover-tooltip");
-          childTooltips.forEach((childTooltip) => {
-            const childTooltipElement = childTooltip as HTMLElement;
-            if (childTooltipElement.dataset.tooltipId === tooltipId) return;
-            const childRect = childTooltipElement.getBoundingClientRect();
-            if (childRect.left > parentRect.left) {
-              childTooltip.remove();
-            }
-          });
-        }, 1000)
-      );
-    };
+  constructor(link: HTMLAnchorElement) {
+    this.link = link;
+    this.createTooltip();
+    this.setupEventListeners();
+  }
 
-    const createTooltip = (
-      target: HTMLAnchorElement,
-      parentTooltipId?: string
-    ) => {
-      const targetId = target.getAttribute("href")?.replace("#", "");
-      if (!targetId) return;
+  static removeExistingTooltips(): void {
+    document.querySelectorAll(".hover-tooltip").forEach((t) => t.remove());
+  }
 
-      const targetElement = document.getElementById(targetId);
-      if (!targetElement) return;
+  private createTooltip(): void {
+    this.tooltipEl = document.createElement("div");
+    this.tooltipEl.className = "hover-tooltip";
+    this.tooltipEl.id = `tooltip-${Math.random().toString(36).substr(2, 9)}`;
+  }
 
-      // 新しいポップアップのIDを生成
-      const tooltipId = `tooltip-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      clearHideTimeout(tooltipId);
+  private setupEventListeners(): void {
+    this.setupHoverEvents();
+  }
 
-      // 既存の子ポップアップを削除
-      if (parentTooltipId) {
-        const parentTooltip = document.querySelector(
-          `[data-tooltip-id="${parentTooltipId}"]`
-        );
-        const existingTooltips = document.querySelectorAll(".hover-tooltip");
-        existingTooltips.forEach((tooltip) => {
-          const tooltipElement = tooltip as HTMLElement;
-          if (tooltipElement.dataset.tooltipId !== parentTooltipId) {
-            const tooltipRect = tooltipElement.getBoundingClientRect();
-            const parentRect = parentTooltip?.getBoundingClientRect();
-            if (parentRect && tooltipRect.left >= parentRect.left) {
-              tooltip.remove();
-            }
-          }
-        });
-      }
+  private setupHoverEvents(): void {
+    this.link.addEventListener("mouseenter", this.handleMouseEnter.bind(this));
+    this.link.addEventListener("mouseleave", this.handleMouseLeave.bind(this));
+  }
 
-      // ポップアップ作成
-      const tooltip = document.createElement("div");
-      tooltip.classList.add("hover-tooltip");
-      tooltip.dataset.tooltipId = tooltipId;
-      tooltip.style.position = "absolute";
-      tooltip.style.width = "256px";
-      tooltip.style.height = "256px";
-      tooltip.style.background = "white";
-      tooltip.style.border = "1px solid #ccc";
-      tooltip.style.borderRadius = "4px";
-      tooltip.style.boxShadow = "0 2px 10px rgba(0,0,0,0.1)";
-      tooltip.style.zIndex = "10000";
-      tooltip.style.overflow = "auto";
-      tooltip.style.padding = "10px";
+  private handleMouseEnter(): void {
+    this.showTimeout = setTimeout(this.showTooltip.bind(this), 300);
+  }
 
-      // 条文の内容をコピー
-      tooltip.innerHTML = targetElement.innerHTML;
+  private handleMouseLeave(): void {
+    if (!this.showTimeout) return;
+    clearTimeout(this.showTimeout);
+    this.showTimeout = null;
+  }
 
-      // ポップアップ内のリンクにイベントを設定
-      const tooltipLinks = tooltip.querySelectorAll("a");
-      tooltipLinks.forEach((link) => {
-        setupLinkEvents(link as HTMLAnchorElement, tooltipId);
-      });
+  private showTooltip(): void {
+    Tooltip.removeExistingTooltips();
+    if (document.getElementById(this.tooltipEl.id)) return;
 
-      // ポップアップの位置を設定
-      const rect = target.getBoundingClientRect();
-      const baseLeft = parentTooltipId
-        ? rect.right + window.scrollX + 10
-        : rect.left + window.scrollX;
-      const tooltipLeft = baseLeft;
-      const tooltipTop = parentTooltipId
-        ? rect.top + window.scrollY // 親ポップアップがある場合は同じ高さ
-        : rect.bottom + window.scrollY + 16; // 通常のリンクの場合は16px下に表示
+    const targetId = this.getTargetId();
+    if (!targetId) return;
 
-      // 画面端での位置調整
-      if (tooltipLeft + 256 > window.innerWidth) {
-        tooltip.style.left = `${rect.left + window.scrollX - 256 - 10}px`;
-      } else {
-        tooltip.style.left = `${tooltipLeft}px`;
-      }
+    const targetElement = document.getElementById(targetId);
+    if (!targetElement) return;
 
-      tooltip.style.top = `${tooltipTop}px`;
+    const clone = targetElement.cloneNode(true) as HTMLElement;
+    this.tooltipEl.innerHTML = "";
+    this.tooltipEl.appendChild(clone);
 
-      // ポップアップのホバーイベント
-      tooltip.addEventListener("mouseenter", () => {
-        clearHideTimeout(tooltipId);
-        if (parentTooltipId) clearHideTimeout(parentTooltipId);
-      });
+    document.body.appendChild(this.tooltipEl);
+    this.adjustPosition();
+  }
 
-      tooltip.addEventListener("mouseleave", (e: MouseEvent) => {
-        const relatedTarget = e.relatedTarget as HTMLElement;
+  private adjustPosition(): void {
+    const rect = this.link.getBoundingClientRect();
+    this.tooltipEl.style.position = "absolute";
+    this.tooltipEl.style.top = `${rect.bottom + window.scrollY + 5}px`;
+    this.tooltipEl.style.left = `${rect.left + window.scrollX}px`;
+  }
 
-        // 子ポップアップに移動した場合は消さない
-        const isMovingToChild = Array.from(
-          document.querySelectorAll(".hover-tooltip")
-        ).some((p) => {
-          const pElement = p as HTMLElement;
-          return (
-            pElement.dataset.tooltipId !== tooltipId &&
-            pElement.dataset.tooltipId !== parentTooltipId &&
-            pElement.contains(relatedTarget)
-          );
-        });
+  private getTargetId(): string | null {
+    const href = this.link.getAttribute("href");
+    if (!href?.startsWith("#")) return null;
+    return href.substring(1);
+  }
+}
 
-        if (!isMovingToChild) {
-          scheduleHideTooltip(tooltipId);
-          if (parentTooltipId) scheduleHideTooltip(parentTooltipId);
-        }
-      });
+function setupTooltip(link: HTMLAnchorElement): void {
+  if (link.dataset.tooltipInitialized === "true") return;
 
-      document.body.appendChild(tooltip);
-      return tooltipId;
-    };
+  const href = link.getAttribute("href");
+  if (!href?.startsWith("#")) return;
 
-    const setupLinkEvents = (
-      link: HTMLAnchorElement,
-      parentTooltipId?: string
-    ) => {
-      link.addEventListener("mouseenter", () => {
-        const newTooltipId = createTooltip(link, parentTooltipId);
-        // 新しいポップアップが作成された場合、親のタイマーをクリア
-        if (newTooltipId && parentTooltipId) {
-          clearHideTimeout(parentTooltipId);
-        }
-      });
+  link.dataset.tooltipInitialized = "true";
+  new Tooltip(link);
+}
 
-      link.addEventListener("mouseleave", (e: MouseEvent) => {
-        const relatedTarget = e.relatedTarget as HTMLElement;
+function setupTooltipObserver(): MutationObserver {
+  const processLinks = (element: Element) => {
+    const links = element.querySelectorAll("a[href^='#']");
+    links.forEach(link => setupTooltip(link as HTMLAnchorElement));
+  };
 
-        // ポップアップ内のリンクの場合（親の tooltip が存在する場合）
-        if (parentTooltipId) {
-          const parentTooltip = document.querySelector(
-            `[data-tooltip-id="${parentTooltipId}"]`
-          );
-          // マウスが親ポップアップ内に留まっている場合は何もしない
-          if (parentTooltip?.contains(relatedTarget)) {
-            return;
-          }
-          scheduleHideTooltip(parentTooltipId);
-        }
+  processLinks(document.body);
 
-        // 通常のリンクの場合
-        const tooltip = document.querySelector(".hover-tooltip");
-        if (tooltip && !tooltip.contains(relatedTarget)) {
-          const tooltipId = (tooltip as HTMLElement).dataset.tooltipId;
-          if (tooltipId) {
-            scheduleHideTooltip(tooltipId);
-          }
-        }
-      });
-    };
-
-    // .main-content 内の全リンクに対してイベントを設定する
-    const processMainContentLinks = (root: ParentNode = document): void => {
-      const links = root.querySelectorAll<HTMLAnchorElement>(
-        "main.main-content a"
-      );
-      links.forEach((link: HTMLAnchorElement) => {
-        if (!link.dataset.hoverTooltipInitialized) {
-          link.dataset.hoverTooltipInitialized = "true";
-          setupLinkEvents(link);
-        }
-      });
-    };
-
-    // 初回レンダリング時に .main-content 内のリンクを処理
-    processMainContentLinks();
-
-    const observer = new MutationObserver((mutationsList) => {
-      mutationsList.forEach((mutation) => {
-        mutation.addedNodes.forEach((node) => {
-          if (node.nodeType === Node.ELEMENT_NODE) {
-            processMainContentLinks(node as Element);
-          }
-        });
+  const observer = new MutationObserver(mutations => {
+    mutations.forEach(mutation => {
+      mutation.addedNodes.forEach(node => {
+        if (!(node instanceof HTMLElement)) return;
+        processLinks(node);
       });
     });
-    observer.observe(document.body, { childList: true, subtree: true });
+  });
 
-    // クリーンアップ処理
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+
+  return observer;
+}
+
+const HoverTooltip: React.FC = () => {
+  useEffect(() => {
+    const observer = setupTooltipObserver();
     return () => {
-      hideTimeouts.forEach((timeout) => clearTimeout(timeout));
-      hideTimeouts.clear();
+      Tooltip.removeExistingTooltips();
       observer.disconnect();
-      const tooltips = document.querySelectorAll(".hover-tooltip");
-      tooltips.forEach((tooltip) => tooltip.remove());
     };
   }, []);
 

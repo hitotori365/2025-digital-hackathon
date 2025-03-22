@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { querySelectorAllWithDelay } from "../utils/utils";
+import { debounce, createProcessLock } from "../utils/processControl";
 
 type Abbreviation = {
   term: string; // 略称
@@ -130,16 +131,31 @@ async function processAbbreviations(): Promise<void> {
 
 const AbbreviationLinker: React.FC = () => {
   useEffect(() => {
-    processAbbreviations();
+    const processLock = createProcessLock();
+    const debouncedProcess = debounce(() => {
+      processLock(async () => {
+        await processAbbreviations();
+      });
+    }, 100);
 
-    const observer = new MutationObserver(() => {
-      processAbbreviations();
+    const observer = new MutationObserver((mutations) => {
+      // 大量の変更がある場合はスキップ
+      if (mutations.length > 100) return;
+      debouncedProcess();
     });
-    observer.observe(document.body, { childList: true, subtree: true });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: false,
+      characterData: false
+    });
+
     return () => {
       observer.disconnect();
     };
   }, []);
+
   return null;
 };
 

@@ -42,15 +42,17 @@ function isPortionTitle(text: string | null): boolean {
  */
 async function addClassToArticleTitleAndParagraphTitle(): Promise<void> {
   try {
-    // span.paragraphtitle要素を待機して取得
-    const elements = await querySelectorAllWithDelay("span.paragraphtitle");
-    elements.forEach((element) => {
-      const text = element.textContent;
+    // 子要素に任意のHTML要素を持たず、かつ空でないspan.paragraphtitle要素のみを取得
+    const spans = await querySelectorAllWithDelay(
+      "span.paragraphtitle:not(:has(*)):not(:empty)"
+    );
+    spans.forEach((span) => {
+      const text = span.textContent;
       if (isArticleTitle(text)) {
-        element.classList.add("articletitle");
+        span.classList.add("articletitle");
       }
       if (isParagraphTitle(text)) {
-        element.classList.add("paragraphtitle");
+        span.classList.add("paragraphtitle");
       }
     });
   } catch (error) {
@@ -59,20 +61,19 @@ async function addClassToArticleTitleAndParagraphTitle(): Promise<void> {
 }
 
 /**
- * div._div_ArticleTitle 内のspanにクラスを追加する
+ * div._div_ArticleTitle 内の一番内側のspanにクラスを追加する
  */
 async function addClassToArticleTitle(): Promise<void> {
   try {
-    // div._div_ArticleTitle要素を待機して取得
-    const elements = await querySelectorAllWithDelay("div._div_ArticleTitle");
-    elements.forEach((element) => {
-      const spans = element.querySelectorAll("span");
-      spans.forEach((span) => {
-        const text = span.textContent;
-        if (isArticleTitle(text)) {
-          span.classList.add("articletitle");
-        }
-      });
+    // div._div_ArticleTitle内の、子要素に任意のHTML要素を持たず、かつ空でないspan要素を取得
+    const spans = await querySelectorAllWithDelay(
+      "div._div_ArticleTitle span:not(:has(*)):not(:empty)"
+    );
+    spans.forEach((span) => {
+      const text = span.textContent;
+      if (isArticleTitle(text)) {
+        span.classList.add("articletitle");
+      }
     });
   } catch (error) {
     console.error("要素取得に失敗:", error);
@@ -80,60 +81,59 @@ async function addClassToArticleTitle(): Promise<void> {
 }
 
 /**
- * div._div_ParagraphSentence 内のspanにクラスを追加する
+ * div._div_ParagraphSentence 内の一番内側のspanにクラスを追加する
  */
 async function addClassToParagraphTitle(): Promise<void> {
   try {
-    // div._div_ParagraphSentence要素を待機して取得
-    const elements = await querySelectorAllWithDelay(
-      "div._div_ParagraphSentence"
+    // div._div_ParagraphSentence内の、子要素に任意のHTML要素を持たず、かつ空でないspan要素を取得
+    const spans = await querySelectorAllWithDelay(
+      "div._div_ParagraphSentence span:not(:has(*)):not(:empty)"
     );
-    elements.forEach((element) => {
-      const spans = element.querySelectorAll("span");
-      spans.forEach((span) => {
-        const text = span.textContent;
-        if (isParagraphTitle(text)) {
-          span.classList.add("paragraphtitle");
-        }
-      });
+    spans.forEach((span) => {
+      const text = span.textContent;
+      if (isParagraphTitle(text)) {
+        span.classList.add("paragraphtitle");
+      }
     });
   } catch (error) {
     console.error("要素取得に失敗:", error);
   }
 }
 
+/**
+ * div._div_ItemSentence 内の一番内側のspanにクラスを追加する
+ */
 async function addClassToItemTitle(): Promise<void> {
   try {
-    // div._div_ItemSentence要素を待機して取得
-    const elements = await querySelectorAllWithDelay("div._div_ItemSentence");
-    elements.forEach((element) => {
-      const spans = element.querySelectorAll("span");
-      spans.forEach((span) => {
-        const text = span.textContent;
-        if (isItemTitle(text)) {
-          span.classList.add("itemtitle");
-        }
-      });
+    // div._div_ItemSentence内の、子要素に任意のHTML要素を持たず、かつ空でないspan要素を取得
+    const spans = await querySelectorAllWithDelay(
+      "div._div_ItemSentence span:not(:has(*)):not(:empty)"
+    );
+    spans.forEach((span) => {
+      const text = span.textContent;
+      if (isItemTitle(text)) {
+        span.classList.add("itemtitle");
+      }
     });
   } catch (error) {
     console.error("要素取得に失敗:", error);
   }
 }
 
+/**
+ * div._div_Subitem1Sentence 内の一番内側のspanにクラスを追加する
+ */
 async function addClassToPortionTitle(): Promise<void> {
   try {
-    // div._div_ItemSentence要素を待機して取得
-    const elements = await querySelectorAllWithDelay(
-      "div._div_Subitem1Sentence"
+    // div._div_Subitem1Sentence内の、子要素に任意のHTML要素を持たず、かつ空でないspan要素を取得
+    const spans = await querySelectorAllWithDelay(
+      "div._div_Subitem1Sentence span:not(:has(*)):not(:empty)"
     );
-    elements.forEach((element) => {
-      const spans = element.querySelectorAll("span");
-      spans.forEach((span) => {
-        const text = span.textContent;
-        if (isPortionTitle(text)) {
-          span.classList.add("portiontitle");
-        }
-      });
+    spans.forEach((span) => {
+      const text = span.textContent;
+      if (isPortionTitle(text)) {
+        span.classList.add("portiontitle");
+      }
     });
   } catch (error) {
     console.error("要素取得に失敗:", error);
@@ -142,7 +142,7 @@ async function addClassToPortionTitle(): Promise<void> {
 
 /**
  * React コンポーネント:
- * マウント時 (初回レンダリング時) に `addClassToArticleAndParagraph` を実行。
+ * マウント時 (初回レンダリング時) に クラス追加関数を実行。
  */
 const DecorateLawTitles: React.FC = () => {
   useEffect(() => {
